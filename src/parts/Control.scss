@@ -1,0 +1,17 @@
+.nav-root {
+    height: 100%;
+    width: 100%;
+}
+
+.wide-display-nav {
+    display: none;
+}
+
+
+// 600px 以上
+@media (min-width: 600px) {
+    .wide-display-nav {
+        display: flex;
+        justify-content: end;
+    }
+}
