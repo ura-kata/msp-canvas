@@ -1,4 +1,13 @@
 .content-root {
-    height: 100%;
-    width: 100%
+    height: 100vh;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.svg-canvas {
+    border: solid 1px #404040;
 }
