@@ -12,8 +12,8 @@ export class AppContextProviderProps {
 }
 
 export class FileData {
-    width?: number;
-    height?: number;
+    width: number = 0;
+    height: number = 0;
 }
 
 export class AppContextData {

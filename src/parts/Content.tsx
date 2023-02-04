@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import "./Content.scss";
 import { useAppContext } from "../contexts/AppContext";
+import { useBackgroundImage } from "../hooks/useBackgroundImage";
 
 export class ContentProps {}
 
@@ -11,72 +12,13 @@ function debugLog(msg: string) {
 }
 
 export function Content(props: ContentProps) {
-    const { data, setData } = useAppContext();
+    const backgroundImageData = useBackgroundImage();
     const contentRootRef = useRef<HTMLDivElement>(null);
     const svg = useRef(
         null as d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null
     );
 
-    const globalScale = useMemo(() => 1.5, []);
-    const globalLocation = useMemo(() => ({ x: -100, y: 0 }), []);
-
-    useEffect(() => {
-        const div = contentRootRef.current as HTMLDivElement;
-
-        if (!svg.current) {
-            const width = Math.floor(div.clientWidth - 10);
-            const height = Math.floor(div.clientHeight - 10);
-            const viewbox = `${globalLocation.x} ${globalLocation.y} ${
-                width * globalScale
-            } ${height * globalScale}`;
-            const s = d3
-                .select(".content-root")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", viewbox)
-                .attr("class", "svg-canvas");
-            svg.current = s;
-
-            debugLog("created svg");
-        }
-        const resizeObserver = new ResizeObserver((e) => {
-            const s = svg.current;
-            if (!s) return;
-
-            const width = Math.floor(div.clientWidth - 10);
-            const height = Math.floor(div.clientHeight - 10);
-
-            s.attr("width", width).attr("height", height);
-
-            debugLog("resize div");
-        });
-
-        debugLog("create size observe");
-
-        resizeObserver.observe(div);
-
-        return () => {
-            resizeObserver.unobserve(div);
-        };
-    }, []);
-
-    useEffect(() => {
-        const div = contentRootRef.current as HTMLDivElement;
-        const s = svg.current;
-        if (!s) return;
-
-        const width = Math.floor(div.clientWidth - 10);
-        const height = Math.floor(div.clientHeight - 10);
-        const viewbox = `${globalLocation.x} ${globalLocation.y} ${
-            width * globalScale
-        } ${height * globalScale}`;
-        s.transition().attr("viewBox", viewbox);
-
-        debugLog("resize viewBox");
-    }, [globalScale, globalLocation]);
-
-    console.log(data.fileData);
+    console.log(backgroundImageData?.url);
 
     const sampleData = useMemo(
         () => [
@@ -87,20 +29,104 @@ export function Content(props: ContentProps) {
         ],
         []
     );
-    const imageData = useMemo(
+    const backgroundImageList = useMemo(
         () =>
             [
                 {
                     x: 0,
                     y: 0,
-                    imageUrl: data.fileUrl,
+                    imageUrl: backgroundImageData?.url,
                 },
             ].filter(
                 (d): d is { x: number; y: number; imageUrl: string } =>
                     d.imageUrl != undefined
             ),
-        [data]
+        [backgroundImageData]
     );
+
+    useEffect(() => {
+        const div = contentRootRef.current as HTMLDivElement;
+        if (!svg.current) return;
+
+        const resize = () => {
+            const s = svg.current;
+            if (!s) return;
+            const imageWidth = backgroundImageData?.width ?? 0;
+            const imageHeight = backgroundImageData?.height ?? 0;
+            const clientWidth = Math.floor(div.clientWidth - 10);
+            const clientHeight = Math.floor(div.clientHeight - 10);
+            const scale = Math.min(
+                clientWidth / imageWidth,
+                clientHeight / imageHeight
+            );
+            const width = imageWidth === 0 ? 0 : imageWidth * scale;
+            const height = imageHeight === 0 ? 0 : imageHeight * scale;
+            const viewbox = `0 0 ${imageWidth} ${imageHeight}`;
+
+            s.attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", viewbox);
+
+            debugLog("resize div");
+        };
+
+        resize();
+
+        const resizeObserver = new ResizeObserver((e) => {
+            resize();
+        });
+
+        debugLog("create size observe");
+
+        resizeObserver.observe(div);
+
+        return () => {
+            resizeObserver.unobserve(div);
+        };
+    }, [backgroundImageData]);
+
+    useEffect(() => {
+        const div = contentRootRef.current as HTMLDivElement;
+
+        if (!svg.current) {
+            const width = Math.floor(div.clientWidth - 10);
+            const height = Math.floor(div.clientHeight - 10);
+            const viewbox = `0 0 ${width} ${height}`;
+            const s = d3
+                .select(".content-root")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", viewbox)
+                .attr("class", "svg-canvas");
+            svg.current = s;
+
+            const zoomed = (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+                console.log(event.transform);
+                console.log("zoom");
+
+                // globalScale.current = event.transform.k;
+                // scaleCanvas();
+
+                const chain = s
+                    .selectAll<SVGCircleElement, unknown>("circle")
+                    .data(sampleData);
+
+                chain.exit().remove();
+                const chainAdd = chain.enter().append("circle");
+
+                const chainUpdate = chainAdd.merge(chain);
+                console.log(event.transform.toString());
+                chainUpdate.attr("transform", event.transform.toString());
+            };
+            const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", zoomed);
+
+            s.call(zoom);
+
+            debugLog("created svg");
+        }
+    }, []);
+
     useEffect(() => {
         // TODO d3 の描画処理など
         const s = svg.current;
@@ -127,7 +153,7 @@ export function Content(props: ContentProps) {
         const drawImage = () => {
             const chain = s
                 .selectAll<SVGImageElement, unknown>("image")
-                .data(imageData);
+                .data(backgroundImageList);
 
             chain.exit().remove();
             const chainAdd = chain.enter().append("image");
@@ -142,6 +168,6 @@ export function Content(props: ContentProps) {
 
         drawSample();
         drawImage();
-    }, [svg.current, sampleData, imageData]);
+    }, [svg.current, sampleData, backgroundImageList]);
     return <div className="content-root" ref={contentRootRef}></div>;
 }
