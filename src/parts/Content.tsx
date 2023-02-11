@@ -99,9 +99,13 @@ export function Content(props: ContentProps) {
                 .attr("height", height)
                 .attr("viewBox", viewbox)
                 .attr("class", "svg-canvas");
+            s.append("g").attr("class", "background-layer");
+            s.append("g").attr("class", "draw-layer");
             svg.current = s;
 
-            const zoomed = (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+            const zoomedCircle = (
+                event: d3.D3ZoomEvent<SVGSVGElement, unknown>
+            ) => {
                 console.log(event.transform);
                 console.log("zoom");
 
@@ -119,6 +123,28 @@ export function Content(props: ContentProps) {
                 console.log(event.transform.toString());
                 chainUpdate.attr("transform", event.transform.toString());
             };
+
+            const zoomedImage = (
+                event: d3.D3ZoomEvent<SVGSVGElement, unknown>
+            ) => {
+                console.log(event.transform);
+                console.log("zoom");
+
+                const chain = s
+                    .selectAll<SVGImageElement, unknown>("image")
+                    .data(sampleData);
+
+                chain.exit().remove();
+                const chainAdd = chain.enter().append("image");
+
+                const chainUpdate = chainAdd.merge(chain);
+                console.log(event.transform.toString());
+                chainUpdate.attr("transform", event.transform.toString());
+            };
+            const zoomed = (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+                zoomedCircle(event);
+                zoomedImage(event);
+            };
             const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", zoomed);
 
             s.call(zoom);
@@ -135,6 +161,7 @@ export function Content(props: ContentProps) {
 
         const drawSample = () => {
             const chain = s
+                .select(".draw-layer")
                 .selectAll<SVGCircleElement, unknown>("circle")
                 .data(sampleData);
 
@@ -147,11 +174,12 @@ export function Content(props: ContentProps) {
                 .attr("cx", (d) => d.x)
                 .attr("cy", (d) => d.y)
                 .attr("r", 100)
-                .attr("fill", "#fff");
+                .attr("fill", "#000");
         };
 
         const drawImage = () => {
             const chain = s
+                .select(".background-layer")
                 .selectAll<SVGImageElement, unknown>("image")
                 .data(backgroundImageList);
 
