@@ -3,8 +3,9 @@ import * as d3 from "d3";
 import "./Content.scss";
 import { useAppContext } from "../contexts/AppContext";
 import { useBackgroundImage } from "../hooks/useBackgroundImage";
+import { usePlutData } from "../hooks/usePlutData";
 
-export class ContentProps {}
+export interface ContentProps {}
 
 function debugLog(msg: string) {
     const d = new Date();
@@ -19,6 +20,8 @@ export function Content(props: ContentProps) {
     );
 
     console.log(backgroundImageData?.url);
+
+    const plutData = usePlutData();
 
     const sampleData = useMemo<
         { x: number; y: number; type: "circle" | "rect" }[]
@@ -52,6 +55,28 @@ export function Content(props: ContentProps) {
         [backgroundImageData]
     );
 
+    const setZoom = (viewBoxWidth: number, viewBoxHeight: number) => {
+        // 呼び出すたびに zoom を再定義する
+        const s = svg.current;
+        if (!s) return;
+        const zoomed = (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+            s.selectAll<SVGGElement, unknown>(
+                ".background-layer,.draw-layer"
+            ).attr("transform", event.transform.toString());
+            console.log("after resize");
+        };
+        const zoom = d3
+            .zoom<SVGSVGElement, unknown>()
+            .scaleExtent([1, 50])
+            .translateExtent([
+                [0, 0],
+                [viewBoxWidth, viewBoxHeight],
+            ])
+            .on("zoom", zoomed);
+
+        s.call(zoom);
+    };
+
     useEffect(() => {
         const div = contentRootRef.current as HTMLDivElement;
         if (!svg.current) return;
@@ -74,6 +99,8 @@ export function Content(props: ContentProps) {
             s.attr("width", width)
                 .attr("height", height)
                 .attr("viewBox", viewbox);
+
+            setZoom(imageWidth, imageHeight);
 
             debugLog("resize div");
         };
@@ -111,51 +138,7 @@ export function Content(props: ContentProps) {
             s.append("g").attr("class", "draw-layer");
             svg.current = s;
 
-            const zoomedCircle = (
-                event: d3.D3ZoomEvent<SVGSVGElement, unknown>
-            ) => {
-                console.log(event.transform);
-                console.log("zoom");
-
-                // globalScale.current = event.transform.k;
-                // scaleCanvas();
-
-                const chain = s
-                    .selectAll<SVGCircleElement, unknown>("circle")
-                    .data(sampleData);
-
-                chain.exit().remove();
-                const chainAdd = chain.enter().append("circle");
-
-                const chainUpdate = chainAdd.merge(chain);
-                console.log(event.transform.toString());
-                chainUpdate.attr("transform", event.transform.toString());
-            };
-
-            const zoomedImage = (
-                event: d3.D3ZoomEvent<SVGSVGElement, unknown>
-            ) => {
-                console.log(event.transform);
-                console.log("zoom");
-
-                const chain = s
-                    .selectAll<SVGImageElement, unknown>("image")
-                    .data(sampleData);
-
-                chain.exit().remove();
-                const chainAdd = chain.enter().append("image");
-
-                const chainUpdate = chainAdd.merge(chain);
-                console.log(event.transform.toString());
-                chainUpdate.attr("transform", event.transform.toString());
-            };
-            const zoomed = (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
-                zoomedCircle(event);
-                zoomedImage(event);
-            };
-            const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", zoomed);
-
-            s.call(zoom);
+            setZoom(width, height);
 
             debugLog("created svg");
         }
@@ -216,6 +199,40 @@ export function Content(props: ContentProps) {
                 .attr("fill", "#000");
         };
 
+        const drawPult = () => {
+            const layer = s.select(".draw-layer");
+            {
+                const chain = layer
+                    .selectAll<SVGGElement, unknown>(".plut-g")
+                    .data(plutData);
+
+                chain.exit().remove();
+                chain
+                    .enter()
+                    .append("g")
+                    .merge(chain)
+                    .attr("class", (d) => "plut-g " + d.type);
+            }
+            {
+                const type = "violin";
+                const chain = layer
+                    .selectAll(".plut-g." + type)
+                    .data(plutData.filter((d) => d.type === type));
+
+                chain
+                    .append("circle")
+                    .attr("cx", (d) => d.cx)
+                    .attr("cy", (d) => d.cy)
+                    .attr("r", (d) => 100)
+                    .attr("fill", "#000");
+                chain
+                    .append("text")
+                    .attr("x", (d) => d.cx + 100)
+                    .attr("y", (d) => d.cy + 100)
+                    .text((d) => d.type);
+            }
+        };
+
         const drawImage = () => {
             const chain = s
                 .select(".background-layer")
@@ -233,8 +250,9 @@ export function Content(props: ContentProps) {
                 .attr("href", (d) => d.imageUrl);
         };
 
-        drawSample();
+        // drawSample();
         drawImage();
-    }, [svg.current, sampleData, backgroundImageList]);
+        drawPult();
+    }, [svg.current, sampleData, backgroundImageList, plutData]);
     return <div className="content-root" ref={contentRootRef}></div>;
 }
