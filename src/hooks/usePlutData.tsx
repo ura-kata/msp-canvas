@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-interface PultData {
+export interface PultData {
     cx: number;
     cy: number;
     type: "violin" | "viola" | "violoncello" | "contrabass" | "grand-piano";

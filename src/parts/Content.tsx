@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import "./Content.scss";
 import { useAppContext } from "../contexts/AppContext";
 import { useBackgroundImage } from "../hooks/useBackgroundImage";
-import { usePlutData } from "../hooks/usePlutData";
+import { usePlutData, PultData } from "../hooks/usePlutData";
 
 export interface ContentProps {}
 
@@ -202,34 +202,70 @@ export function Content(props: ContentProps) {
         const drawPult = () => {
             const layer = s.select(".draw-layer");
             {
+                const move = (type: string) => {
+                    const filteredData = plutData.filter(
+                        (d) => d.type === type
+                    );
+                    layer
+                        .selectAll(".plut-g." + type + " > circle")
+                        .data(filteredData)
+                        .attr("cx", (d) => d.cx)
+                        .attr("cy", (d) => d.cy);
+                    layer
+                        .selectAll(".plut-g." + type + " > text")
+                        .data(filteredData)
+                        .attr("x", (d) => d.cx + 100)
+                        .attr("y", (d) => d.cy + 100);
+                };
+
+                let dragSubject: PultData | undefined = undefined;
+                const dragStarted = (e: any, d: PultData) => {
+                    dragSubject = e.subject;
+                };
+
+                const dragged = (e: any, d: PultData) => {
+                    const dx = e.dx;
+                    const dy = e.dy;
+                    if (dragSubject) {
+                        dragSubject.cx += dx;
+                        dragSubject.cy += dy;
+                        move(dragSubject.type);
+                    }
+                };
+                const dragEnded = (e: any, d: PultData) => {
+                    dragSubject = undefined;
+                };
+                const drag = d3
+                    .drag<SVGCircleElement, PultData>()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded);
+
                 const chain = layer
                     .selectAll<SVGGElement, unknown>(".plut-g")
                     .data(plutData);
 
+                // exit の後は多い分のデータの処理なので remove で削除する
                 chain.exit().remove();
-                chain
-                    .enter()
-                    .append("g")
-                    .merge(chain)
-                    .attr("class", (d) => "plut-g " + d.type);
-            }
-            {
-                const type = "violin";
-                const chain = layer
-                    .selectAll(".plut-g." + type)
-                    .data(plutData.filter((d) => d.type === type));
 
-                chain
+                // enter の後は増えた分のデータの処理なので g を足しておく
+                const newChainG = chain.enter().append("g");
+                newChainG
                     .append("circle")
                     .attr("cx", (d) => d.cx)
                     .attr("cy", (d) => d.cy)
                     .attr("r", (d) => 100)
-                    .attr("fill", "#000");
-                chain
+                    .attr("fill", "#000")
+                    .call(drag);
+                newChainG
                     .append("text")
                     .attr("x", (d) => d.cx + 100)
                     .attr("y", (d) => d.cy + 100)
                     .text((d) => d.type);
+
+                // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする
+                // type が変わったときにも更新できるように
+                newChainG.merge(chain).attr("class", (d) => "plut-g " + d.type);
             }
         };
 
