@@ -23,23 +23,6 @@ export function Content(props: ContentProps) {
 
     const plutData = usePlutData();
 
-    const sampleData = useMemo<
-        { x: number; y: number; type: "circle" | "rect" }[]
-    >(
-        () => [
-            {
-                x: 700,
-                y: 500,
-                type: "circle",
-            },
-            {
-                x: 800,
-                y: 600,
-                type: "rect",
-            },
-        ],
-        []
-    );
     const backgroundImageList = useMemo(
         () =>
             [
@@ -150,55 +133,6 @@ export function Content(props: ContentProps) {
         if (!s) return;
         debugLog("test");
 
-        const drawSample = () => {
-            // MOME : 同じデータの配列で要素を追加することでz-order を配列の順番にするために
-            // 別々の要素を追加する方法を確認している
-            const layer = s.select(".draw-layer");
-            const chain = layer
-                .selectAll<SVGCircleElement | SVGRectElement, unknown>(
-                    ".object"
-                )
-                .data(sampleData);
-
-            chain.exit().remove();
-
-            const createNode = (d: {
-                x: number;
-                y: number;
-                type: "circle" | "rect";
-            }) => {
-                switch (d.type) {
-                    case "circle":
-                        return document.createElementNS(
-                            "http://www.w3.org/2000/svg",
-                            "circle"
-                        );
-                    // こちらでは要素は生成されるが絵に反映がされなかった
-                    // return d3.create("circle").node() as SVGCircleElement;
-                    case "rect":
-                        return document.createElementNS(
-                            "http://www.w3.org/2000/svg",
-                            "rect"
-                        );
-                    // return d3.create("rect").node() as SVGRectElement;
-                }
-            };
-
-            const chainAdd = chain.enter().append(createNode);
-
-            const chainUpdate = chainAdd.merge(chain);
-
-            chainUpdate
-                // TODO : すべての要素に同じ属性が追加されてしまうので属性を付けない方法を確認する
-                .attr("class", "object")
-                .attr("cx", (d) => d.x)
-                .attr("cy", (d) => d.y)
-                .attr("r", 100)
-                .style("width", 100)
-                .attr("height", 100)
-                .attr("fill", "#000");
-        };
-
         const drawPult = () => {
             const layer = s.select(".draw-layer");
             {
@@ -286,9 +220,8 @@ export function Content(props: ContentProps) {
                 .attr("href", (d) => d.imageUrl);
         };
 
-        // drawSample();
         drawImage();
         drawPult();
-    }, [svg.current, sampleData, backgroundImageList, plutData]);
+    }, [svg.current, backgroundImageList, plutData]);
     return <div className="content-root" ref={contentRootRef}></div>;
 }
