@@ -16,14 +16,22 @@ export class FileData {
     height: number = 0;
 }
 
-export class AppContextData {
+export type PlutType = "violin" | "viola" | "cello" | "bass";
+export interface Plut {
+    type: PlutType;
+}
+
+export interface AppContextData {
     file?: File;
     fileUrl?: string;
     fileData?: FileData;
+    pluts: Plut[];
 }
 
 export function AppContextProvider(props: AppContextProviderProps) {
-    const [data, setData] = useState<AppContextData>({});
+    const [data, setData] = useState<AppContextData>({
+        pluts: [],
+    });
 
     useEffect(() => {
         const fileUrl = data.fileUrl;

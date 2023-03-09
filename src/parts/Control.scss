@@ -1,6 +1,13 @@
 .nav-root {
     height: 100%;
     width: 100%;
+
+    display: flex;
+    flex-flow: column;
+
+    >.MuiButton-root {
+        margin: 0.2em;
+    }
 }
 
 .wide-display-nav {

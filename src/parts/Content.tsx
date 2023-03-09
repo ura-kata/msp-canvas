@@ -126,37 +126,31 @@ function drawPult(
 ) {
     const layer = svg.select(".draw-layer");
     {
-        const move = (type: string) => {
-            const filteredData = data.filter((d) => d.type === type);
+        const move = (d: PultD3Data) => {
+            const data = [d];
             layer
-                .selectAll(".plut-g." + type + " > circle")
-                .data(filteredData)
+                .select(".plut-g." + d.type + " > circle.plut-drag-" + d.id)
+                .data(data)
                 .attr("cx", (d) => d.cx)
                 .attr("cy", (d) => d.cy);
             layer
-                .selectAll(".plut-g." + type + " > text")
-                .data(filteredData)
+                .select(".plut-g." + d.type + " > text.plut-drag-" + d.id)
+                .data(data)
                 .attr("x", (d) => d.cx + 100)
                 .attr("y", (d) => d.cy + 100);
         };
 
-        let dragSubject: PultD3Data | undefined = undefined;
-        const dragStarted = (e: any, d: PultD3Data) => {
-            dragSubject = e.subject;
-        };
+        const dragStarted = (e: any, d: PultD3Data) => {};
 
         const dragged = (e: any, d: PultD3Data) => {
             const dx = e.dx;
             const dy = e.dy;
-            if (dragSubject) {
-                dragSubject.cx += dx;
-                dragSubject.cy += dy;
-                move(dragSubject.type);
-            }
+
+            d.cx += dx;
+            d.cy += dy;
+            move(d);
         };
-        const dragEnded = (e: any, d: PultD3Data) => {
-            dragSubject = undefined;
-        };
+        const dragEnded = (e: any, d: PultD3Data) => {};
         const drag = d3
             .drag<SVGCircleElement, PultD3Data>()
             .on("start", dragStarted)
@@ -177,12 +171,14 @@ function drawPult(
             .attr("cx", (d) => d.cx)
             .attr("cy", (d) => d.cy)
             .attr("r", (d) => 100)
-            .attr("fill", "#000")
+            .attr("fill", (d: any) => (d.id === 0 ? "#000" : "#f00"))
+            .attr("class", (d) => "plut-drag-" + d.id)
             .call(drag);
         newChainG
             .append("text")
             .attr("x", (d) => d.cx + 100)
             .attr("y", (d) => d.cy + 100)
+            .attr("class", (d) => "plut-drag-" + d.id)
             .text((d) => d.type);
 
         // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする

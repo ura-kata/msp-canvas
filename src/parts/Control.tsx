@@ -4,7 +4,11 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { useState } from "react";
 import Button from "@mui/material/Button";
-import { AppContextData, useAppContext } from "../contexts/AppContext";
+import {
+    AppContextData,
+    PlutType,
+    useAppContext,
+} from "../contexts/AppContext";
 
 export class NavProps {
     className?: string;
@@ -17,6 +21,10 @@ export function Control(props: NavProps) {
         if (!e.target.files) return;
         const img = e.target.files[0];
         setData((d) => ({ ...d, file: img }));
+    };
+
+    const handleAdd = (type: PlutType) => {
+        setData((d) => ({ ...d, pluts: [...d.pluts, { type: type }] }));
     };
     return (
         <div className={"nav-root " + props.className}>
@@ -32,6 +40,34 @@ export function Control(props: NavProps) {
                     accept=".png,.jpg,.jpeg"
                     onChange={handlerInputImage}
                 />
+            </Button>
+            <Button
+                variant="contained"
+                component="label"
+                onClick={() => handleAdd("violin")}
+            >
+                Violin
+            </Button>
+            <Button
+                variant="contained"
+                component="label"
+                onClick={() => handleAdd("viola")}
+            >
+                Viola
+            </Button>
+            <Button
+                variant="contained"
+                component="label"
+                onClick={() => handleAdd("cello")}
+            >
+                Cello
+            </Button>
+            <Button
+                variant="contained"
+                component="label"
+                onClick={() => handleAdd("bass")}
+            >
+                Bass
             </Button>
             <form></form>
         </div>
