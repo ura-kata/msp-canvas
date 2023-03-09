@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 
-export interface PultData {
+export interface PultD3Data {
     cx: number;
     cy: number;
     type: "violin" | "viola" | "violoncello" | "contrabass" | "grand-piano";
 }
 
-export function usePlutData(): PultData[] {
+export function usePlutData(): PultD3Data[] {
     const data = useMemo(() => {
         return [
             {
@@ -14,7 +14,7 @@ export function usePlutData(): PultData[] {
                 cy: 10,
                 type: "violin",
             },
-        ] as PultData[];
+        ] as PultD3Data[];
     }, []);
 
     return data;

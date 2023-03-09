@@ -3,10 +3,10 @@ import { useAppContext } from "../contexts/AppContext";
 
 import baseCanvasUrl from "../assets/base-canvas.svg";
 
-export class BackgroundImageData {
-    url: string = "";
-    width: number = 0;
-    height: number = 0;
+export interface BackgroundImageData {
+    url: string;
+    width: number;
+    height: number;
 }
 
 export function useBackgroundImage(): BackgroundImageData | undefined {
