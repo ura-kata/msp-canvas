@@ -30,7 +30,7 @@ export interface AppContextData {
 
 export function AppContextProvider(props: AppContextProviderProps) {
     const [data, setData] = useState<AppContextData>({
-        pluts: [],
+        pluts: [{ type: "viola" }],
     });
 
     useEffect(() => {

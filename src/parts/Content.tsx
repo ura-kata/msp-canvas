@@ -87,6 +87,10 @@ function useRootSvg(): RootSvgData {
             svg.current = s;
 
             resizeRootSvg(svg.current, div.clientWidth, div.clientHeight, 0, 0);
+
+            s.on("click", (d) => {
+                console.log("root svg click");
+            });
         }
     }, []);
 
@@ -94,6 +98,48 @@ function useRootSvg(): RootSvgData {
         svg: svg.current,
         contentRootRef: contentRootRef,
     };
+}
+
+const DEBUG_SHAPE_RELOAD = 9;
+
+function setPlutShapeParam(
+    circle: d3.Selection<SVGCircleElement, PultD3Data, d3.BaseType, unknown>,
+    text: d3.Selection<SVGTextElement, PultD3Data, d3.BaseType, unknown>
+) {
+    circle
+        .attr("cx", (d) => d.cx)
+        .attr("cy", (d) => d.cy)
+        .attr("r", (d) => 100)
+        .attr("fill", (d: any) => "#000")
+        .attr("class", (d) => "plut-drag-" + d.id);
+
+    const createText = (d: PultD3Data) => {
+        switch (d.type) {
+            case "violin":
+                return "Vn.";
+            case "viola":
+                return "Vla.";
+            case "cello":
+                return "Vc.";
+            case "bass":
+                return "Cb.";
+        }
+    };
+    const createTextX = (d: PultD3Data) => {
+        switch (d.type) {
+            case "viola":
+                // 3文字+.
+                return d.cx - 60;
+        }
+        // 2文字+.
+        return d.cx - 50;
+    };
+    text.attr("x", createTextX)
+        .attr("y", (d) => d.cy + 30)
+        .attr("class", (d) => "plut-drag-" + d.id)
+        .attr("font-size", "80")
+        .attr("fill", "#fff")
+        .text(createText);
 }
 
 interface BackgroundD3Data {
@@ -128,16 +174,17 @@ function drawPult(
     {
         const move = (d: PultD3Data) => {
             const data = [d];
-            layer
-                .select(".plut-g." + d.type + " > circle.plut-drag-" + d.id)
-                .data(data)
-                .attr("cx", (d) => d.cx)
-                .attr("cy", (d) => d.cy);
-            layer
-                .select(".plut-g." + d.type + " > text.plut-drag-" + d.id)
-                .data(data)
-                .attr("x", (d) => d.cx + 100)
-                .attr("y", (d) => d.cy + 100);
+            const circle = layer
+                .select<SVGCircleElement>(
+                    ".plut-g." + d.type + " > circle.plut-drag-" + d.id
+                )
+                .data(data);
+            const text = layer
+                .select<SVGTextElement>(
+                    ".plut-g." + d.type + " > text.plut-drag-" + d.id
+                )
+                .data(data);
+            setPlutShapeParam(circle, text);
         };
 
         const dragStarted = (e: any, d: PultD3Data) => {};
@@ -151,8 +198,13 @@ function drawPult(
             move(d);
         };
         const dragEnded = (e: any, d: PultD3Data) => {};
-        const drag = d3
+        const dragCircle = d3
             .drag<SVGCircleElement, PultD3Data>()
+            .on("start", dragStarted)
+            .on("drag", dragged)
+            .on("end", dragEnded);
+        const dragText = d3
+            .drag<SVGTextElement, PultD3Data>()
             .on("start", dragStarted)
             .on("drag", dragged)
             .on("end", dragEnded);
@@ -166,20 +218,9 @@ function drawPult(
 
         // enter の後は増えた分のデータの処理なので g を足しておく
         const newChainG = chain.enter().append("g");
-        newChainG
-            .append("circle")
-            .attr("cx", (d) => d.cx)
-            .attr("cy", (d) => d.cy)
-            .attr("r", (d) => 100)
-            .attr("fill", (d: any) => (d.id === 0 ? "#000" : "#f00"))
-            .attr("class", (d) => "plut-drag-" + d.id)
-            .call(drag);
-        newChainG
-            .append("text")
-            .attr("x", (d) => d.cx + 100)
-            .attr("y", (d) => d.cy + 100)
-            .attr("class", (d) => "plut-drag-" + d.id)
-            .text((d) => d.type);
+        const circle = newChainG.append("circle").call(dragCircle);
+        const text = newChainG.append("text").call(dragText);
+        setPlutShapeParam(circle, text);
 
         // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする
         // type が変わったときにも更新できるように
@@ -246,6 +287,22 @@ export function Content(props: ContentProps) {
         drawBackgroundImage(svg, backgroundData);
         drawPult(svg, plutData);
     }, [svg, backgroundData, plutData]);
+
+    useEffect(() => {
+        // DEBUG
+        const s = svg;
+        if (!s) return;
+
+        const layer = svg.select(".draw-layer");
+        const circle = layer
+            .selectAll<SVGCircleElement, unknown>(".plut-g > circle")
+            .data(plutData);
+        const text = layer
+            .selectAll<SVGTextElement, unknown>(".plut-g > text")
+            .data(plutData);
+
+        setPlutShapeParam(circle, text);
+    }, [DEBUG_SHAPE_RELOAD]);
 
     return <div className="content-root" ref={contentRootRef}></div>;
 }

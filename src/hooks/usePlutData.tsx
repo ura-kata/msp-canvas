@@ -9,7 +9,7 @@ export interface PultD3Data {
     cx: number;
     cy: number;
     type: PlutType;
-    id: number;
+    id: string;
 }
 
 export function usePlutData(): PultD3Data[] {
@@ -20,7 +20,7 @@ export function usePlutData(): PultD3Data[] {
             cx: 200,
             cy: 200,
             type: p.type,
-            id: i,
+            id: crypto.randomUUID(),
         }));
     }, [data.pluts]);
 

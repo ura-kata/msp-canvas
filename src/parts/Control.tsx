@@ -9,6 +9,12 @@ import {
     PlutType,
     useAppContext,
 } from "../contexts/AppContext";
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+} from "@mui/material";
 
 export class NavProps {
     className?: string;
@@ -23,8 +29,14 @@ export function Control(props: NavProps) {
         setData((d) => ({ ...d, file: img }));
     };
 
+    const [dialogOpne, setDialogOpne] = useState(false);
+
     const handleAdd = (type: PlutType) => {
         setData((d) => ({ ...d, pluts: [...d.pluts, { type: type }] }));
+    };
+
+    const handleDialogClose = () => {
+        setDialogOpne(false);
     };
     return (
         <div className={"nav-root " + props.className}>
@@ -69,7 +81,22 @@ export function Control(props: NavProps) {
             >
                 Bass
             </Button>
+            <Button
+                variant="contained"
+                component="label"
+                onClick={() => setDialogOpne(true)}
+            >
+                プルト入力
+            </Button>
             <form></form>
+            <Dialog open={dialogOpne} onClose={handleDialogClose}>
+                <DialogTitle>プルト入力</DialogTitle>
+                <DialogContent></DialogContent>
+                <DialogActions>
+                    <Button>保存</Button>
+                    <Button>キャンセル</Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
