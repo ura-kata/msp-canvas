@@ -17,20 +17,23 @@ export class FileData {
 }
 
 export type PlutType = "violin" | "viola" | "cello" | "bass";
-export interface Plut {
+export interface PultD3Data {
+    cx: number;
+    cy: number;
     type: PlutType;
+    id: string;
 }
 
 export interface AppContextData {
     file?: File;
     fileUrl?: string;
     fileData?: FileData;
-    pluts: Plut[];
+    pluts: PultD3Data[];
 }
 
 export function AppContextProvider(props: AppContextProviderProps) {
     const [data, setData] = useState<AppContextData>({
-        pluts: [{ type: "viola" }],
+        pluts: [{ type: "viola", id: crypto.randomUUID(), cx: 200, cy: 200 }],
     });
 
     useEffect(() => {

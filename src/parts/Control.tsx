@@ -32,7 +32,13 @@ export function Control(props: NavProps) {
     const [dialogOpne, setDialogOpne] = useState(false);
 
     const handleAdd = (type: PlutType) => {
-        setData((d) => ({ ...d, pluts: [...d.pluts, { type: type }] }));
+        setData((d) => ({
+            ...d,
+            pluts: [
+                ...d.pluts,
+                { type: type, id: crypto.randomUUID(), cx: 200, cy: 200 },
+            ],
+        }));
     };
 
     const handleDialogClose = () => {

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import "./Content.scss";
-import { useAppContext } from "../contexts/AppContext";
+import { useAppContext, PultD3Data } from "../contexts/AppContext";
 import { useBackgroundImage } from "../hooks/useBackgroundImage";
-import { usePlutData, PultD3Data } from "../hooks/usePlutData";
+import { usePlutData } from "../hooks/usePlutData";
+import { Menu, MenuItem } from "@mui/material";
 
 export interface ContentProps {}
 
@@ -168,7 +169,8 @@ function drawBackgroundImage(
 
 function drawPult(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
-    data: PultD3Data[]
+    data: PultD3Data[],
+    handleContextMenu: (clientX: number, clientY: number, d: PultD3Data) => void
 ) {
     const layer = svg.select(".draw-layer");
     {
@@ -209,6 +211,13 @@ function drawPult(
             .on("drag", dragged)
             .on("end", dragEnded);
 
+        const handleOnContextMenu = (e: PointerEvent, d: PultD3Data) => {
+            e.preventDefault();
+
+            // e の client のポジションが div と一致しているのでとりあえずこれをそのまま使う
+            handleContextMenu(e.clientX, e.clientY, d);
+        };
+
         const chain = layer
             .selectAll<SVGGElement, unknown>(".plut-g")
             .data(data);
@@ -218,17 +227,34 @@ function drawPult(
 
         // enter の後は増えた分のデータの処理なので g を足しておく
         const newChainG = chain.enter().append("g");
-        const circle = newChainG.append("circle").call(dragCircle);
-        const text = newChainG.append("text").call(dragText);
-        setPlutShapeParam(circle, text);
+
+        // どんなターゲットでも共通の処理を初期化として与えておく
+        newChainG
+            .append("circle")
+            .call(dragCircle)
+            .on("contextmenu", handleOnContextMenu);
+        newChainG
+            .append("text")
+            .call(dragText)
+            .on("contextmenu", handleOnContextMenu);
 
         // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする
         // type が変わったときにも更新できるように
         newChainG.merge(chain).attr("class", (d) => "plut-g " + d.type);
+
+        // データが変わったときに必ず全体を更新する
+        const circle = layer
+            .selectAll<SVGCircleElement, unknown>(".plut-g > circle")
+            .data(data);
+        const text = layer
+            .selectAll<SVGTextElement, unknown>(".plut-g > text")
+            .data(data);
+        setPlutShapeParam(circle, text);
     }
 }
 
 export function Content(props: ContentProps) {
+    const { data, setData } = useAppContext();
     const backgroundImageData = useBackgroundImage();
 
     const { svg, contentRootRef } = useRootSvg();
@@ -279,14 +305,34 @@ export function Content(props: ContentProps) {
         };
     }, [backgroundImageData]);
 
+    const [targetMenuData, setTargetMenuData] = useState<{
+        mouseX: number;
+        mouseY: number;
+        id: string;
+    } | null>(null);
+    const handleContextMenu = (e: React.MouseEvent) => {
+        // キャンバス全体のコンテキストメニューを設定する
+        // e.preventDefault();
+    };
+
+    const handleTargetContextMenu = useCallback(
+        (clientX: number, clientY: number, d: PultD3Data) => {
+            setTargetMenuData({ mouseX: clientX, mouseY: clientY, id: d.id });
+        },
+        []
+    );
+
     useEffect(() => {
         // d3 の描画処理など
         const s = svg;
         if (!s) return;
 
         drawBackgroundImage(svg, backgroundData);
-        drawPult(svg, plutData);
-    }, [svg, backgroundData, plutData]);
+
+        console.log("draw plut");
+        console.log(plutData);
+        drawPult(svg, plutData, handleTargetContextMenu);
+    }, [svg, backgroundData, plutData, handleTargetContextMenu]);
 
     useEffect(() => {
         // DEBUG
@@ -304,5 +350,42 @@ export function Content(props: ContentProps) {
         setPlutShapeParam(circle, text);
     }, [DEBUG_SHAPE_RELOAD]);
 
-    return <div className="content-root" ref={contentRootRef}></div>;
+    const handleDeleteTarget = () => {
+        console.log(targetMenuData?.id);
+        console.log(data.pluts.filter((p) => p.id !== targetMenuData?.id));
+        setData((d) => {
+            return {
+                ...d,
+                pluts: d.pluts.filter((p) => p.id !== targetMenuData?.id),
+            };
+        });
+        setTargetMenuData(null);
+    };
+    const handleOnMenuClose = () => {
+        setTargetMenuData(null);
+    };
+
+    return (
+        <div
+            className="content-root"
+            ref={contentRootRef}
+            onContextMenu={handleContextMenu}
+        >
+            <Menu
+                open={targetMenuData !== null}
+                anchorReference="anchorPosition"
+                onClose={handleOnMenuClose}
+                anchorPosition={
+                    targetMenuData
+                        ? {
+                              top: targetMenuData.mouseY,
+                              left: targetMenuData.mouseX,
+                          }
+                        : undefined
+                }
+            >
+                <MenuItem onClick={handleDeleteTarget}>削除</MenuItem>
+            </Menu>
+        </div>
+    );
 }
