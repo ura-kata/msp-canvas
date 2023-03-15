@@ -1,12 +1,7 @@
-import IconButton from "@mui/material/IconButton";
 import "./Control.scss";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { useState } from "react";
 import Button from "@mui/material/Button";
 import {
-    AppContextData,
-    PlutType,
     useAppContext,
 } from "../contexts/AppContext";
 import {
@@ -14,6 +9,7 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    TextField,
 } from "@mui/material";
 
 export class NavProps {
@@ -22,7 +18,6 @@ export class NavProps {
 
 export function Control(props: NavProps) {
     const { data, setData } = useAppContext();
-    const handlerUploadImage = () => {};
     const handlerInputImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
         const img = e.target.files[0];
@@ -31,19 +26,18 @@ export function Control(props: NavProps) {
 
     const [dialogOpne, setDialogOpne] = useState(false);
 
-    const handleAdd = (type: PlutType) => {
-        setData((d) => ({
-            ...d,
-            pluts: [
-                ...d.pluts,
-                { type: type, id: crypto.randomUUID(), cx: 200, cy: 200 },
-            ],
-        }));
+    const [pultText, setPultText] = useState(data.plutData ?? "");
+
+    const handleSavePlut = ()=>{
+        setDialogOpne(false);
+        setData(d=>({...d, plutData: pultText}))
     };
 
-    const handleDialogClose = () => {
+    const handleCalcelPlut = ()=>{
         setDialogOpne(false);
+        setPultText(data.plutData ?? "")
     };
+
     return (
         <div className={"nav-root " + props.className}>
             <Button variant="contained" component="label">
@@ -62,45 +56,18 @@ export function Control(props: NavProps) {
             <Button
                 variant="contained"
                 component="label"
-                onClick={() => handleAdd("violin")}
-            >
-                Violin
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => handleAdd("viola")}
-            >
-                Viola
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => handleAdd("cello")}
-            >
-                Cello
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => handleAdd("bass")}
-            >
-                Bass
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
                 onClick={() => setDialogOpne(true)}
             >
                 プルト入力
             </Button>
-            <form></form>
-            <Dialog open={dialogOpne} onClose={handleDialogClose}>
+            <Dialog open={dialogOpne} onClose={handleCalcelPlut}>
                 <DialogTitle>プルト入力</DialogTitle>
-                <DialogContent></DialogContent>
+                <DialogContent>
+                    <TextField multiline rows={20} value={pultText} onChange={e=>setPultText(e.target.value)}></TextField>
+                </DialogContent>
                 <DialogActions>
-                    <Button>保存</Button>
-                    <Button>キャンセル</Button>
+                    <Button onClick={handleSavePlut}>保存</Button>
+                    <Button onClick={handleCalcelPlut}>キャンセル</Button>
                 </DialogActions>
             </Dialog>
         </div>

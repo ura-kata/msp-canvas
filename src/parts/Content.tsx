@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import "./Content.scss";
 import { useAppContext, PultD3Data } from "../contexts/AppContext";
 import { useBackgroundImage } from "../hooks/useBackgroundImage";
-import { usePlutData } from "../hooks/usePlutData";
+import { usePults } from "../hooks/usePults";
 import { Menu, MenuItem } from "@mui/material";
 
 export interface ContentProps {}
@@ -259,7 +259,7 @@ export function Content(props: ContentProps) {
 
     const { svg, contentRootRef } = useRootSvg();
 
-    const plutData = usePlutData();
+    const pults = usePults();
 
     const backgroundData = useMemo<BackgroundD3Data[]>(() => {
         if (backgroundImageData) {
@@ -330,9 +330,9 @@ export function Content(props: ContentProps) {
         drawBackgroundImage(svg, backgroundData);
 
         console.log("draw plut");
-        console.log(plutData);
-        drawPult(svg, plutData, handleTargetContextMenu);
-    }, [svg, backgroundData, plutData, handleTargetContextMenu]);
+        console.log(pults);
+        drawPult(svg, pults, handleTargetContextMenu);
+    }, [svg, backgroundData, pults, handleTargetContextMenu]);
 
     useEffect(() => {
         // DEBUG
@@ -342,21 +342,21 @@ export function Content(props: ContentProps) {
         const layer = svg.select(".draw-layer");
         const circle = layer
             .selectAll<SVGCircleElement, unknown>(".plut-g > circle")
-            .data(plutData);
+            .data(pults);
         const text = layer
             .selectAll<SVGTextElement, unknown>(".plut-g > text")
-            .data(plutData);
+            .data(pults);
 
         setPlutShapeParam(circle, text);
     }, [DEBUG_SHAPE_RELOAD]);
 
     const handleDeleteTarget = () => {
         console.log(targetMenuData?.id);
-        console.log(data.pluts.filter((p) => p.id !== targetMenuData?.id));
+        console.log(data.pults.filter((p) => p.id !== targetMenuData?.id));
         setData((d) => {
             return {
                 ...d,
-                pluts: d.pluts.filter((p) => p.id !== targetMenuData?.id),
+                pults: d.pults.filter((p) => p.id !== targetMenuData?.id),
             };
         });
         setTargetMenuData(null);

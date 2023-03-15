@@ -18,6 +18,7 @@ export class FileData {
 
 export type PlutType = "violin" | "viola" | "cello" | "bass";
 export interface PultD3Data {
+    name: string;
     cx: number;
     cy: number;
     type: PlutType;
@@ -28,12 +29,13 @@ export interface AppContextData {
     file?: File;
     fileUrl?: string;
     fileData?: FileData;
-    pluts: PultD3Data[];
+    pults: PultD3Data[];
+    plutData?: string;
 }
 
 export function AppContextProvider(props: AppContextProviderProps) {
     const [data, setData] = useState<AppContextData>({
-        pluts: [{ type: "viola", id: crypto.randomUUID(), cx: 200, cy: 200 }],
+        pults: [],
     });
 
     useEffect(() => {
@@ -68,6 +70,48 @@ export function AppContextProvider(props: AppContextProviderProps) {
 
         console.log("created url");
     }, [data.file]);
+
+    
+    useEffect(() => {
+        const pultData = data.plutData ?? "";
+
+        const lines = pultData.split(/\r\n|\n/);
+
+        const prevPluts: { [name: string]: PultD3Data } = {};
+        data.pults.forEach(p => {
+            prevPluts[p.name] = p;
+        });
+
+        const nameCounts: { [name: string]: number } = {};
+        const pults = lines.filter(l => 0 < l.length).map(l => {
+            let name = l.trim();
+            if (name in nameCounts) {
+                nameCounts[name]++;
+            }
+            else {
+                nameCounts[name] = 1;
+            }
+
+            const key = 1 === nameCounts[name] ? name : (name + " " + nameCounts[name])
+
+            if (key in prevPluts) {
+                return prevPluts[key];
+            }
+            else {
+                return {
+                    name: key,
+                    cx: 200,
+                    cy: 200,
+                    type: "violin",
+                    id: crypto.randomUUID(),
+                } as PultD3Data;
+            }
+        });
+
+        setData(d => ({ ...d, pults: pults }));
+    }, [data.plutData]);
+
+
     return (
         <AppContext.Provider value={{ data, setData }}>
             {props.children}

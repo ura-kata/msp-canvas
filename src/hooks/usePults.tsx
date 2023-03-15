@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
     AppContextData,
     PlutType,
@@ -6,9 +6,7 @@ import {
     PultD3Data,
 } from "../contexts/AppContext";
 
-export function usePlutData(): PultD3Data[] {
+export function usePults(): PultD3Data[] {
     const { data, setData } = useAppContext();
-    // { cx: 10, cy: 10, type: "violin" }
-
-    return data.pluts;
+    return data.pults;
 }
