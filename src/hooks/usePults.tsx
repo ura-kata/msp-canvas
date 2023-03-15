@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from "react";
 import {
     AppContextData,
-    PlutType,
     useAppContext,
     PultD3Data,
 } from "../contexts/AppContext";

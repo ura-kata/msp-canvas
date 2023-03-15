@@ -115,28 +115,13 @@ function setPlutShapeParam(
         .attr("class", (d) => "plut-drag-" + d.id);
 
     const createText = (d: PultD3Data) => {
-        switch (d.type) {
-            case "violin":
-                return "Vn.";
-            case "viola":
-                return "Vla.";
-            case "cello":
-                return "Vc.";
-            case "bass":
-                return "Cb.";
-        }
+        return d.display;
     };
     const createTextX = (d: PultD3Data) => {
-        switch (d.type) {
-            case "viola":
-                // 3文字+.
-                return d.cx - 60;
-        }
-        // 2文字+.
-        return d.cx - 50;
+        return d.cx;
     };
     text.attr("x", createTextX)
-        .attr("y", (d) => d.cy + 30)
+        .attr("y", (d) => d.cy)
         .attr("class", (d) => "plut-drag-" + d.id)
         .attr("font-size", "80")
         .attr("fill", "#fff")
@@ -178,12 +163,12 @@ function drawPult(
             const data = [d];
             const circle = layer
                 .select<SVGCircleElement>(
-                    ".plut-g." + d.type + " > circle.plut-drag-" + d.id
+                    ".plut-g > circle.plut-drag-" + d.id
                 )
                 .data(data);
             const text = layer
                 .select<SVGTextElement>(
-                    ".plut-g." + d.type + " > text.plut-drag-" + d.id
+                    ".plut-g > text.plut-drag-" + d.id
                 )
                 .data(data);
             setPlutShapeParam(circle, text);
@@ -240,7 +225,7 @@ function drawPult(
 
         // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする
         // type が変わったときにも更新できるように
-        newChainG.merge(chain).attr("class", (d) => "plut-g " + d.type);
+        newChainG.merge(chain).attr("class", (d) => "plut-g");
 
         // データが変わったときに必ず全体を更新する
         const circle = layer

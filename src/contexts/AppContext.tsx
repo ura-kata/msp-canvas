@@ -16,13 +16,12 @@ export class FileData {
     height: number = 0;
 }
 
-export type PlutType = "violin" | "viola" | "cello" | "bass";
 export interface PultD3Data {
     name: string;
     cx: number;
     cy: number;
-    type: PlutType;
     id: string;
+    display: string;
 }
 
 export interface AppContextData {
@@ -102,8 +101,8 @@ export function AppContextProvider(props: AppContextProviderProps) {
                     name: key,
                     cx: 200,
                     cy: 200,
-                    type: "violin",
                     id: crypto.randomUUID(),
+                    display: key[0]
                 } as PultD3Data;
             }
         });
