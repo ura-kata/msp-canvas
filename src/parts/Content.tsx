@@ -108,24 +108,20 @@ function setPlutShapeParam(
     text: d3.Selection<SVGTextElement, PultD3Data, d3.BaseType, unknown>
 ) {
     circle
-        .attr("cx", (d) => d.cx)
-        .attr("cy", (d) => d.cy)
+        .attr("cx", "100")
+        .attr("cy", "100")
         .attr("r", (d) => 100)
         .attr("fill", (d: any) => "#000")
         .attr("class", (d) => "plut-drag-" + d.id);
 
-    const createText = (d: PultD3Data) => {
-        return d.display;
-    };
-    const createTextX = (d: PultD3Data) => {
-        return d.cx;
-    };
-    text.attr("x", createTextX)
-        .attr("y", (d) => d.cy)
+    text.attr("x", "50%")
+        .attr("y", "50%")
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
         .attr("class", (d) => "plut-drag-" + d.id)
         .attr("font-size", "80")
         .attr("fill", "#fff")
-        .text(createText);
+        .text((d) => d.display);
 }
 
 interface BackgroundD3Data {
@@ -161,17 +157,11 @@ function drawPult(
     {
         const move = (d: PultD3Data) => {
             const data = [d];
-            const circle = layer
-                .select<SVGCircleElement>(
-                    ".plut-g > circle.plut-drag-" + d.id
-                )
-                .data(data);
-            const text = layer
-                .select<SVGTextElement>(
-                    ".plut-g > text.plut-drag-" + d.id
-                )
-                .data(data);
-            setPlutShapeParam(circle, text);
+            layer
+                .select<SVGSVGElement>(".plut-g.plut-drag-" + d.id)
+                .data(data)
+                .attr("x", (d) => d.cx - 100)
+                .attr("y", (d) => d.cy - 100);
         };
 
         const dragStarted = (e: any, d: PultD3Data) => {};
@@ -185,18 +175,15 @@ function drawPult(
             move(d);
         };
         const dragEnded = (e: any, d: PultD3Data) => {};
-        const dragCircle = d3
-            .drag<SVGCircleElement, PultD3Data>()
-            .on("start", dragStarted)
-            .on("drag", dragged)
-            .on("end", dragEnded);
-        const dragText = d3
-            .drag<SVGTextElement, PultD3Data>()
+        const dragSvg = d3
+            .drag<SVGSVGElement, PultD3Data>()
             .on("start", dragStarted)
             .on("drag", dragged)
             .on("end", dragEnded);
 
         const handleOnContextMenu = (e: PointerEvent, d: PultD3Data) => {
+            // プルトを文字で入力できるようにしたのでコンテキストメニューで削除をとりあえずしないようにする
+            // TODO : ただ pultText から削除する処理を書けばできるのでそれも検討しておく
             e.preventDefault();
 
             // e の client のポジションが div と一致しているのでとりあえずこれをそのまま使う
@@ -204,28 +191,32 @@ function drawPult(
         };
 
         const chain = layer
-            .selectAll<SVGGElement, unknown>(".plut-g")
+            .selectAll<SVGSVGElement, unknown>(".plut-g")
             .data(data);
 
         // exit の後は多い分のデータの処理なので remove で削除する
         chain.exit().remove();
 
         // enter の後は増えた分のデータの処理なので g を足しておく
-        const newChainG = chain.enter().append("g");
+        const newChainSvg = chain.enter().append("svg");
 
         // どんなターゲットでも共通の処理を初期化として与えておく
-        newChainG
-            .append("circle")
-            .call(dragCircle)
-            .on("contextmenu", handleOnContextMenu);
-        newChainG
-            .append("text")
-            .call(dragText)
-            .on("contextmenu", handleOnContextMenu);
+        newChainSvg.append("circle");
+        // .on("contextmenu", handleOnContextMenu);
+        newChainSvg.append("text");
+        // .on("contextmenu", handleOnContextMenu);
 
         // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする
         // type が変わったときにも更新できるように
-        newChainG.merge(chain).attr("class", (d) => "plut-g");
+        newChainSvg
+            .merge(chain)
+            .attr("class", (d) => "plut-g plut-drag-" + d.id)
+            .attr("viewBox", "0 0 200 200")
+            .attr("height", "200")
+            .attr("width", "200")
+            .attr("x", (d) => d.cx - 100)
+            .attr("y", (d) => d.cy - 100)
+            .call(dragSvg);
 
         // データが変わったときに必ず全体を更新する
         const circle = layer

@@ -22,6 +22,7 @@ export interface PultD3Data {
     cy: number;
     id: string;
     display: string;
+    lineNo: number;
 }
 
 export interface AppContextData {
@@ -70,47 +71,60 @@ export function AppContextProvider(props: AppContextProviderProps) {
         console.log("created url");
     }, [data.file]);
 
-    
     useEffect(() => {
         const pultData = data.plutText ?? "";
 
         const lines = pultData.split(/\r\n|\n/);
 
         const prevPluts: { [name: string]: PultD3Data } = {};
-        data.pults.forEach(p => {
+        data.pults.forEach((p) => {
             prevPluts[p.name] = p;
         });
 
         const nameCounts: { [name: string]: number } = {};
-        const pults = lines.filter(l => 0 < l.length).map(l => {
-            let name = l.trim();
-            if (name in nameCounts) {
-                nameCounts[name]++;
-            }
-            else {
-                nameCounts[name] = 1;
-            }
+        const pults = lines
+            .map((l, i) => {
+                let name = l.trim();
 
-            const key = 1 === nameCounts[name] ? name : (name + " " + nameCounts[name])
+                if (name.length === 0) {
+                    // 文字列がなければオブジェクトを作らない
+                    return undefined;
+                }
 
-            if (key in prevPluts) {
-                return prevPluts[key];
-            }
-            else {
-                return {
-                    name: key,
-                    cx: 200,
-                    cy: 200,
-                    id: crypto.randomUUID(),
-                    display: key[0]
-                } as PultD3Data;
-            }
-        });
+                if (name in nameCounts) {
+                    nameCounts[name]++;
+                } else {
+                    nameCounts[name] = 1;
+                }
 
-        setData(d => ({ ...d, pults: pults }));
+                const key =
+                    1 === nameCounts[name]
+                        ? name
+                        : name + " " + nameCounts[name];
+
+                if (key in prevPluts) {
+                    return prevPluts[key];
+                } else {
+                    return {
+                        name: key,
+                        cx: 200,
+                        cy: 200,
+                        id: crypto.randomUUID(),
+                        display: key[0],
+                        lineNo: i,
+                    } as PultD3Data;
+                }
+            })
+            .filter((p): p is PultD3Data => p !== undefined);
+
+        setData((d) => ({ ...d, pults: pults }));
     }, [data.plutText]);
 
-
+    useEffect(() => {
+        // DEBUG
+        const pultData = "aaaa";
+        setData((d) => ({ ...d, plutText: pultData }));
+    }, []);
 
     return (
         <AppContext.Provider value={{ data, setData }}>

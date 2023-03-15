@@ -1,9 +1,7 @@
 import "./Control.scss";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
-import {
-    useAppContext,
-} from "../contexts/AppContext";
+import { useAppContext } from "../contexts/AppContext";
 import {
     Dialog,
     DialogActions,
@@ -28,14 +26,14 @@ export function Control(props: NavProps) {
 
     const [pultText, setPultText] = useState(data.plutText ?? "");
 
-    const handleSavePlut = ()=>{
+    const handleSavePlut = () => {
         setDialogOpne(false);
-        setData(d=>({...d, plutText: pultText}))
+        setData((d) => ({ ...d, plutText: pultText }));
     };
 
-    const handleCalcelPlut = ()=>{
+    const handleCalcelPlut = () => {
         setDialogOpne(false);
-        setPultText(data.plutText ?? "")
+        setPultText(data.plutText ?? "");
     };
 
     useEffect(() => {
@@ -67,7 +65,12 @@ export function Control(props: NavProps) {
             <Dialog open={dialogOpne} onClose={handleCalcelPlut}>
                 <DialogTitle>プルト入力</DialogTitle>
                 <DialogContent>
-                    <TextField multiline rows={20} value={pultText} onChange={e=>setPultText(e.target.value)}></TextField>
+                    <TextField
+                        multiline
+                        rows={20}
+                        value={pultText}
+                        onChange={(e) => setPultText(e.target.value)}
+                    ></TextField>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleSavePlut}>保存</Button>
