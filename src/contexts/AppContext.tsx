@@ -29,7 +29,7 @@ export interface AppContextData {
     fileUrl?: string;
     fileData?: FileData;
     pults: PultD3Data[];
-    plutData?: string;
+    plutText?: string;
 }
 
 export function AppContextProvider(props: AppContextProviderProps) {
@@ -72,7 +72,7 @@ export function AppContextProvider(props: AppContextProviderProps) {
 
     
     useEffect(() => {
-        const pultData = data.plutData ?? "";
+        const pultData = data.plutText ?? "";
 
         const lines = pultData.split(/\r\n|\n/);
 
@@ -108,7 +108,8 @@ export function AppContextProvider(props: AppContextProviderProps) {
         });
 
         setData(d => ({ ...d, pults: pults }));
-    }, [data.plutData]);
+    }, [data.plutText]);
+
 
 
     return (

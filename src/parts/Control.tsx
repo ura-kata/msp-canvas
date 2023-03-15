@@ -26,16 +26,16 @@ export function Control(props: NavProps) {
 
     const [dialogOpne, setDialogOpne] = useState(false);
 
-    const [pultText, setPultText] = useState(data.plutData ?? "");
+    const [pultText, setPultText] = useState(data.plutText ?? "");
 
     const handleSavePlut = ()=>{
         setDialogOpne(false);
-        setData(d=>({...d, plutData: pultText}))
+        setData(d=>({...d, plutText: pultText}))
     };
 
     const handleCalcelPlut = ()=>{
         setDialogOpne(false);
-        setPultText(data.plutData ?? "")
+        setPultText(data.plutText ?? "")
     };
 
     return (
