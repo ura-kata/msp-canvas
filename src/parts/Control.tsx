@@ -38,6 +38,10 @@ export function Control(props: NavProps) {
         setPultText(data.plutText ?? "")
     };
 
+    useEffect(() => {
+        setPultText(data.plutText ?? "");
+    }, [data.plutText]);
+
     return (
         <div className={"nav-root " + props.className}>
             <Button variant="contained" component="label">
