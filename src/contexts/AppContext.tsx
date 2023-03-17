@@ -76,12 +76,11 @@ export function AppContextProvider(props: AppContextProviderProps) {
 
         const lines = pultData.split(/\r\n|\n/);
 
-        const prevPluts: { [name: string]: PultD3Data } = {};
+        const prevPluts: { [lineNo: number]: PultD3Data } = {};
         data.pults.forEach((p) => {
-            prevPluts[p.name] = p;
+            prevPluts[p.lineNo] = p;
         });
 
-        const nameCounts: { [name: string]: number } = {};
         const pults = lines
             .map((l, i) => {
                 let name = l.trim();
@@ -91,26 +90,18 @@ export function AppContextProvider(props: AppContextProviderProps) {
                     return undefined;
                 }
 
-                if (name in nameCounts) {
-                    nameCounts[name]++;
-                } else {
-                    nameCounts[name] = 1;
-                }
-
-                const key =
-                    1 === nameCounts[name]
-                        ? name
-                        : name + " " + nameCounts[name];
-
-                if (key in prevPluts) {
-                    return prevPluts[key];
+                if (i in prevPluts) {
+                    const t = prevPluts[i];
+                    t.name = name;
+                    t.display = name.slice(0,2)
+                    return t;
                 } else {
                     return {
-                        name: key,
+                        name: name,
                         cx: 200,
                         cy: 200,
                         id: crypto.randomUUID(),
-                        display: key[0],
+                        display: name.slice(0,2),
                         lineNo: i,
                     } as PultD3Data;
                 }
