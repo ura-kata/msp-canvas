@@ -51,7 +51,7 @@ export function Control(props: NavProps) {
                     hidden
                     id="img"
                     type="file"
-                    accept=".png,.jpg,.jpeg"
+                    accept=".png,.jpg,.jpeg,.svg"
                     onChange={handlerInputImage}
                 />
             </Button>
