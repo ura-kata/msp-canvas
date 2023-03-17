@@ -62,10 +62,11 @@ export function Control(props: NavProps) {
             >
                 プルト入力
             </Button>
-            <Dialog open={dialogOpne} onClose={handleCalcelPlut}>
+            <Dialog open={dialogOpne} onClose={handleCalcelPlut} fullWidth>
                 <DialogTitle>プルト入力</DialogTitle>
-                <DialogContent>
+                <DialogContent >
                     <TextField
+                        fullWidth
                         multiline
                         rows={20}
                         value={pultText}

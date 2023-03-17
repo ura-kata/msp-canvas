@@ -23,6 +23,7 @@ export interface PultD3Data {
     id: string;
     display: string;
     lineNo: number;
+    color?: string;
 }
 
 export interface AppContextData {
@@ -81,19 +82,32 @@ export function AppContextProvider(props: AppContextProviderProps) {
             prevPluts[p.lineNo] = p;
         });
 
+        const getColor = (line: string): {color?:string,other:string}=>{
+            const match = /#color:(.+?)( |$)/.exec(line);
+            if (match){
+                const other = line.slice(0, match.index) + line.slice(match.index+match[0].length);
+                return {color:match[1],other: other};
+            }
+            return {other: line};
+        };
+
         const pults = lines
             .map((l, i) => {
-                let name = l.trim();
+                let line = l.trim();
 
-                if (name.length === 0) {
+                if (line.length === 0) {
                     // 文字列がなければオブジェクトを作らない
                     return undefined;
                 }
+
+                const {other, color} = getColor(line);
+                const name = other.trim();
 
                 if (i in prevPluts) {
                     const t = prevPluts[i];
                     t.name = name;
                     t.display = name.slice(0,2)
+                    t.color = color;
                     return t;
                 } else {
                     return {
@@ -103,6 +117,7 @@ export function AppContextProvider(props: AppContextProviderProps) {
                         id: crypto.randomUUID(),
                         display: name.slice(0,2),
                         lineNo: i,
+                        color: color
                     } as PultD3Data;
                 }
             })

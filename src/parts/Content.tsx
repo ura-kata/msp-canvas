@@ -111,7 +111,7 @@ function setPlutShapeParam(
         .attr("cx", "100")
         .attr("cy", "100")
         .attr("r", (d) => 100)
-        .attr("fill", (d: any) => "#000")
+        .attr("fill", (d: any) => d.color ? d.color : "#000")
         .attr("class", (d) => "plut-drag-" + d.id);
 
     text.attr("x", "50%")
