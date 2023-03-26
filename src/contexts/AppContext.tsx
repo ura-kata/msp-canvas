@@ -1,10 +1,14 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { base64ToFile } from "../libs/utils";
+
+export interface AppContextInterface {
+    data: AppContextData;
+    setData: React.Dispatch<React.SetStateAction<AppContextData>>;
+    loadExportData: (exData: ExportDataV1)=>void;
+}
 
 export const AppContext = createContext(
-    {} as {
-        data: AppContextData;
-        setData: React.Dispatch<React.SetStateAction<AppContextData>>;
-    }
+    {} as AppContextInterface
 );
 
 export class AppContextProviderProps {
@@ -24,6 +28,14 @@ export interface PultD3Data {
     display: string;
     lineNo: number;
     color?: string;
+}
+
+export interface ExportDataV1{
+    version: "1"
+    pultText: string;
+    pults: PultD3Data[];
+    backgroundImage: string;
+    backgroundImageMimeType: string;
 }
 
 export interface AppContextData {
@@ -132,16 +144,25 @@ export function AppContextProvider(props: AppContextProviderProps) {
         setData((d) => ({ ...d, plutText: pultData }));
     }, []);
 
+    const loadExportData = useCallback((exData: ExportDataV1)=>{
+
+        const backgroundImage = base64ToFile(exData.backgroundImage,exData.backgroundImageMimeType);
+        
+        setData(d=>({...d,
+            plutText: exData.pultText,
+            pults: exData.pults,
+            file: backgroundImage
+        }));
+
+    },[data]);
+
     return (
-        <AppContext.Provider value={{ data, setData }}>
+        <AppContext.Provider value={{ data, setData, loadExportData }}>
             {props.children}
         </AppContext.Provider>
     );
 }
 
-export function useAppContext(): {
-    data: AppContextData;
-    setData: React.Dispatch<React.SetStateAction<AppContextData>>;
-} {
+export function useAppContext(): AppContextInterface {
     return useContext(AppContext);
 }
