@@ -23,6 +23,47 @@ export function fileToBase64(file: Blob): Promise<{base64:string, mimeType:strin
     });
 }
 
+//** Fail をbase64で組み込み可能なURLに変換する */
+export function fileToEmbeddedUrl(file: Blob): Promise<string> {
+    return new Promise<string>((resolve,reject)=>{
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = ()=>{
+            const result = reader.result;
+            if(typeof result === "string"){
+                resolve(result);
+            }else{
+                reject(new Error("Invalid file type"));
+            }
+        };
+        reader.onerror = ()=>{
+            reject (reader.error);
+        };
+    });
+}
+
+//** URL をbase64で組み込み可能なURLに変換する */
+export function urlToEmbeddedUrl(url: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        fetch(url).then(r =>r.blob()).then(file=>{
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = ()=>{
+                const result = reader.result;
+                if(typeof result === "string"){
+                    resolve(result);
+                }else{
+                    reject(new Error("Invalid file type"));
+                }
+            };
+            reader.onerror = ()=>{
+                reject (reader.error);
+            };
+        }).catch(e => { reject (e);})
+        
+    });
+}
+
 /** MimeType を FileReader の result から取得する
  */
 export function getMimeType(fileReaderResult: string): string{

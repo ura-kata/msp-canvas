@@ -140,7 +140,8 @@ function setPlutShapeParam(
 
 function drawBackgroundImage(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
-    background?: BackgroundImageData
+    background?: BackgroundImageData,
+    isEmbedded: boolean = false
 ) {
     const width = background?.width ?? 0;
     const height = background?.height ?? 0;
@@ -158,7 +159,12 @@ function drawBackgroundImage(
     chainUpdate
         .attr("x", "0")
         .attr("y", "0")
-        .attr("href", (d) => d?.url ?? "");
+        .attr("href", (d) => {
+            if (isEmbedded) {
+                return d?.embeddedUrl ?? "";
+            }
+            return d?.url ?? ""; 
+        } );
 }
 
 function drawPult(
