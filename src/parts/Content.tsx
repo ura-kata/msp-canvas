@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import "./Content.scss";
 import { useAppContext, PultD3Data } from "../contexts/AppContext";
-import { useBackgroundImage } from "../hooks/useBackgroundImage";
+import { BackgroundImageData, useBackgroundImage } from "../hooks/useBackgroundImage";
 import { usePults } from "../hooks/usePults";
 import { Menu, MenuItem } from "@mui/material";
 
@@ -56,9 +56,8 @@ function resizeRootSvg(
     );
     const width = imageWidth === 0 ? 0 : imageWidth * scale;
     const height = imageHeight === 0 ? 0 : imageHeight * scale;
-    const viewbox = `0 0 ${imageWidth} ${imageHeight}`;
 
-    s.attr("width", width).attr("height", height).attr("viewBox", viewbox);
+    s.attr("width", width).attr("height", height);
 
     setZoom(s, imageWidth, imageHeight);
 }
@@ -66,6 +65,16 @@ function resizeRootSvg(
 interface RootSvgData {
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null;
     contentRootRef: React.RefObject<HTMLDivElement>;
+}
+
+function initRootSvg(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>) {
+    if (!svg)
+        return;
+    const s = svg;
+    s.append("g").attr("class", "background-layer");
+    s.append("g").attr("class", "draw-layer");
+    const viewbox = `0 0 0 0`; 
+    s.attr("viewBox", viewbox);
 }
 
 function useRootSvg(): RootSvgData {
@@ -83,9 +92,9 @@ function useRootSvg(): RootSvgData {
                 .select(".content-root")
                 .append("svg")
                 .attr("class", "svg-canvas");
-            s.append("g").attr("class", "background-layer");
-            s.append("g").attr("class", "draw-layer");
             svg.current = s;
+            
+            initRootSvg(s);
 
             resizeRootSvg(svg.current, div.clientWidth, div.clientHeight, 0, 0);
 
@@ -124,28 +133,27 @@ function setPlutShapeParam(
         .text((d) => d.display);
 }
 
-interface BackgroundD3Data {
-    x: number;
-    y: number;
-    imageUrl: string;
-}
-
 function drawBackgroundImage(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
-    data: BackgroundD3Data[]
+    background?: BackgroundImageData
 ) {
+    const width = background?.width ?? 0;
+    const height = background?.height ?? 0;
+    const viewbox = `0 0 ${width} ${height}`; 
+    svg.attr("viewBox", viewbox);
+
     const chain = svg
         .select(".background-layer")
         .selectAll<SVGImageElement, unknown>("image")
-        .data(data);
+        .data([background]);
 
     chain.exit().remove();
     const chainUpdate = chain.enter().append("image").merge(chain);
 
     chainUpdate
-        .attr("x", (d) => d.x)
-        .attr("y", (d) => d.y)
-        .attr("href", (d) => d.imageUrl);
+        .attr("x", "0")
+        .attr("y", "0")
+        .attr("href", (d) => d?.url ?? "");
 }
 
 function drawPult(
@@ -237,21 +245,7 @@ export function Content(props: ContentProps) {
 
     const pults = usePults();
 
-    const backgroundData = useMemo<BackgroundD3Data[]>(() => {
-        if (backgroundImageData) {
-            return [
-                {
-                    x: 0,
-                    y: 0,
-                    imageUrl: backgroundImageData.url,
-                },
-            ];
-        }
-        return [];
-    }, [backgroundImageData]);
-
     useEffect(() => {
-        // background image を設定する
         const div = contentRootRef.current as HTMLDivElement;
         const s = svg;
         if (!s) return;
@@ -303,12 +297,9 @@ export function Content(props: ContentProps) {
         const s = svg;
         if (!s) return;
 
-        drawBackgroundImage(svg, backgroundData);
-
-        console.log("draw plut");
-        console.log(pults);
+        drawBackgroundImage(svg, backgroundImageData);
         drawPult(svg, pults, handleTargetContextMenu);
-    }, [svg, backgroundData, pults, handleTargetContextMenu]);
+    }, [svg, backgroundImageData, pults, handleTargetContextMenu]);
 
     useEffect(() => {
         // DEBUG
