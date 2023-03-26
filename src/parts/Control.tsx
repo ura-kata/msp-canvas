@@ -1,7 +1,7 @@
 import "./Control.scss";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "@mui/material/Button";
-import { ExportDataV1, useAppContext } from "../contexts/AppContext";
+import { ExportDataV1, PultD3Data, useAppContext } from "../contexts/AppContext";
 import {
     Alert,
     Dialog,
@@ -13,6 +13,8 @@ import {
 } from "@mui/material";
 import { useBackgroundImage } from "../hooks/useBackgroundImage";
 import { base64ToFile, fileToBase64 } from "../libs/utils";
+import { createSvg, drawBackgroundImage, drawPult, initRootSvg } from "../libs/canvas";
+import { usePults } from "../hooks/usePults";
 
 interface InputDialogProps {
     open: boolean;
@@ -56,6 +58,58 @@ function InputDialog(props: InputDialogProps) {
     );
 }
 
+function SvgContent() {
+    const svg = useRef(
+        null as d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null
+    );
+    const backgroundImageData = useBackgroundImage();
+    const pults = usePults();
+    const [drawImage, setDrawImage] = useState<boolean>();
+    const [imgSrc, setImgSrc] = useState("");
+
+    useEffect(() => { 
+        if (svg.current) return;
+        const s = createSvg("#export-svg-data");
+        svg.current = s;
+        initRootSvg(s);
+    }, [svg.current]);
+    
+    useEffect(() => {
+        const s = svg.current;
+        if (!s) return;
+
+        if (!backgroundImageData) return;
+
+        drawBackgroundImage(s, backgroundImageData, true);
+        
+        // TODO: ハンドラを設定しなくても描画できるように設定と動作は分けて実装する
+        const handleTargetContextMenu = (clientX: number, clientY: number, d: PultD3Data) => {
+        };
+        drawPult(s, pults, handleTargetContextMenu);
+        setDrawImage(true);
+    }, [svg.current, backgroundImageData, pults]);
+
+    useEffect(() => { 
+        if (!drawImage) return;
+
+        const svgElement = document.querySelector("#export-svg-data > svg");
+        if (!svgElement) return;
+
+        // https://stackoverflow.com/questions/28450471/convert-inline-svg-to-base64-string
+        // TODO : 中身の理解をする
+        const svgText = new XMLSerializer().serializeToString(svgElement);
+
+        const decoded = unescape(encodeURIComponent(svgText));
+
+        const base64 = btoa(decoded);
+
+        const imgSource = `data:image/svg+xml;base64,${base64}`;
+        setImgSrc(imgSource);
+    }, [drawImage]);
+    
+    return <><div id="export-svg-data" style={{display:"none"}}></div><div id="export-svg-previwe">{imgSrc ? <img src={ imgSrc}></img> : <></>}</div></>
+}
+
 interface ExportDialogProps {
     open: boolean;
     onClose: () => void;
@@ -65,6 +119,7 @@ function ExportDialog(props: ExportDialogProps) {
     const backgroundImage = useBackgroundImage();
 
     const [exportJsonText, setExportJsonText] = useState<string>();
+    const [isSvg, setIsSvg] = useState<boolean>();
 
     const handleExportText = async () => {
         const url = backgroundImage?.url;
@@ -85,7 +140,9 @@ function ExportDialog(props: ExportDialogProps) {
         const exportDataJson = JSON.stringify(exportData);
         setExportJsonText(exportDataJson);
     };
-    const handleExportSvg = () => {};
+    const handleExportSvg = () => {
+        setIsSvg(true);
+    };
     const handleExportPng = () => {};
 
     const Content = exportJsonText ? (
@@ -97,7 +154,7 @@ function ExportDialog(props: ExportDialogProps) {
                 multiline
             ></TextField>
         </>
-    ) : (
+    ) : isSvg ? <SvgContent /> :(
         <>
             <Button onClick={handleExportText}>Text</Button>
             <Button onClick={handleExportSvg}>SVG</Button>
