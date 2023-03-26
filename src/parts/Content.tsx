@@ -67,6 +67,14 @@ interface RootSvgData {
     contentRootRef: React.RefObject<HTMLDivElement>;
 }
 
+function createSvg(parentTagSelector: string):d3.Selection<SVGSVGElement, unknown, HTMLElement, any> {
+    const s = d3
+            .select(parentTagSelector)
+            .append("svg")
+        .attr("class", "svg-canvas");
+    return s;
+}
+
 function initRootSvg(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>) {
     if (!svg)
         return;
@@ -88,10 +96,7 @@ function useRootSvg(): RootSvgData {
         const div = contentRootRef.current as HTMLDivElement;
 
         if (!svg.current) {
-            const s = d3
-                .select(".content-root")
-                .append("svg")
-                .attr("class", "svg-canvas");
+            const s = createSvg(".content-root");
             svg.current = s;
             
             initRootSvg(s);
