@@ -15,6 +15,7 @@ import { useBackgroundImage } from "../hooks/useBackgroundImage";
 import { base64ToFile, fileToBase64 } from "../libs/utils";
 import { createSvg, drawBackgroundImage, drawPult, initRootSvg } from "../libs/canvas";
 import { usePults } from "../hooks/usePults";
+import { format } from 'date-fns'
 
 
 async function createExportDataV1(backgroundUrl: string, data: AppContextData) {
@@ -143,8 +144,17 @@ function SvgContent() {
         const imgSource = `data:image/svg+xml;base64,${base64}`;
         setImgSrc(imgSource);
     }, [drawImage, exportData]);
+
+    const handleDownloadClick = () => {
+        if (!imgSrc) return;
+        const a = document.createElement("a");
+        a.href = imgSrc;
+        a.download = format(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".msp.svg";
+        a.target = "_blank";
+        a.click();
+    };
     
-    return <><div id="export-svg-data" style={{display:"none"}}></div><div id="export-svg-previwe">{imgSrc ? <img src={ imgSrc}></img> : <></>}</div></>
+    return <><div id="export-svg-data" style={{display:"none"}}></div><div id="export-svg-previwe">{imgSrc ? <><img src={ imgSrc}></img><Button onClick={handleDownloadClick}>ダウンロード</Button></> : <></>}</div></>
 }
 
 
