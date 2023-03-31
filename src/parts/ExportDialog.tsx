@@ -25,6 +25,50 @@ async function createExportDataV1(backgroundUrl: string, data: AppContextData) {
     return exportDataJson;
 }
 
+function JsonContent() {
+    
+    const { data } = useAppContext();
+    const backgroundImage = useBackgroundImage();
+    const [exportJsonText, setExportJsonText] = useState<string>();
+
+    useEffect(() => {
+        const url = backgroundImage?.url;
+        if (!url) return;
+
+        const f = async () => {
+            const exportDataJson = await createExportDataV1(url, data);
+            setExportJsonText(exportDataJson);
+        };
+
+        f();
+        
+    }, [backgroundImage]);
+    
+    const handleDownloadClick = () => { 
+        if (!exportJsonText)
+            return;
+        
+        const decoded = unescape(encodeURIComponent(exportJsonText));
+
+        const base64 = btoa(decoded);
+
+        const jsonSrc = `data:application/json;base64,${base64}`;
+
+        
+        const a = document.createElement("a");
+        a.href = jsonSrc;
+        a.download = format(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".msp.json";
+        a.target = "_blank";
+        a.click();
+    };
+    return <><TextField
+        fullWidth
+        value={exportJsonText}
+        rows={15}
+        multiline
+    ></TextField><Button onClick={handleDownloadClick}>ダウンロード</Button></>;
+}
+
 function SvgContent() {
     const { data } = useAppContext();
     const svg = useRef(
@@ -111,40 +155,30 @@ interface ExportDialogProps {
     onClose: () => void;
 }
 export function ExportDialog(props: ExportDialogProps) {
-    const { data } = useAppContext();
-    const backgroundImage = useBackgroundImage();
+    const [exportType, setExportType] = useState<"json" | "svg">();
 
-    const [exportJsonText, setExportJsonText] = useState<string>();
-    const [isSvg, setIsSvg] = useState<boolean>();
-
-    const handleExportText = async () => {
-        const url = backgroundImage?.url;
-        if (!url) return;
-
-        const exportDataJson = await createExportDataV1(url, data);
-        setExportJsonText(exportDataJson);
+    const handleExportText = () => {
+        setExportType("json");
     };
     const handleExportSvg = () => {
-        setIsSvg(true);
+        setExportType("svg");
     };
     const handleExportPng = () => {};
 
-    const Content = exportJsonText ? (
-        <>
-            <TextField
-                fullWidth
-                value={exportJsonText}
-                rows={15}
-                multiline
-            ></TextField>
-        </>
-    ) : isSvg ? <SvgContent /> :(
-        <>
-            <Button onClick={handleExportText}>Text</Button>
+    const Content = (() => {
+        switch (exportType) {
+            case "json":
+                return <JsonContent />;
+            case "svg":
+                return <SvgContent />;
+        }
+        
+        return <>
+            <Button onClick={handleExportText}>Json</Button>
             <Button onClick={handleExportSvg}>SVG</Button>
             <Button onClick={handleExportPng}>PNG</Button>
-        </>
-    );
+        </>;
+     })(); 
 
     return (
         <Dialog open={props.open} onClose={props.onClose} fullWidth>

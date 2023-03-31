@@ -155,7 +155,7 @@ export function ImportDialog(props: ImportDialogProps) {
         </>
     ) : loadedSvgFile ? <ImportSvgContent svgFile={loadedSvgFile} onClose={ handleOnClose} /> : (
         <>
-            <Button onClick={handleImportTextClick}>Text</Button>
+            <Button onClick={handleImportTextClick}>Json</Button>
             <Button component="label">
             SVG
             <input
