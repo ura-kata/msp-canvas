@@ -1,83 +1,87 @@
 import "./Control.scss";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Button from "@mui/material/Button";
 import { useAppContext } from "../contexts/AppContext";
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    TextField,
-} from "@mui/material";
+import { ImportDialog } from "./ImportDialog";
+import { ExportDialog } from "./ExportDialog";
+import { InputDialog } from "./InputDialog";
+import { Typography } from "@mui/material";
+
 
 export class NavProps {
     className?: string;
 }
 
 export function Control(props: NavProps) {
-    const { data, setData } = useAppContext();
-    const handlerInputImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { setData } = useAppContext();
+    const handleLoadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
         const img = e.target.files[0];
         setData((d) => ({ ...d, file: img }));
     };
 
-    const [dialogOpne, setDialogOpne] = useState(false);
+    const [inputOpen, setInputOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+    const [importOpen, setImportOpen] = useState(false);
 
-    const [pultText, setPultText] = useState(data.plutText ?? "");
-
-    const handleSavePlut = () => {
-        setDialogOpne(false);
-        setData((d) => ({ ...d, plutText: pultText }));
+    const handleInputClose = () => {
+        setInputOpen(false);
     };
 
-    const handleCalcelPlut = () => {
-        setDialogOpne(false);
-        setPultText(data.plutText ?? "");
+    const handleImportClose = () => {
+        setImportOpen(false);
     };
 
-    useEffect(() => {
-        setPultText(data.plutText ?? "");
-    }, [data.plutText]);
+    const handleExportClose = () => {
+        setExportOpen(false);
+    };
 
     return (
         <div className={"nav-root " + props.className}>
-            <Button variant="contained" component="label">
-                背景画像をアップロード
-                {/*
-                materila ui の Button に input を仕込む方法
-                https://stackoverflow.com/questions/40589302/how-to-enable-file-upload-on-reacts-material-ui-simple-input */}
-                <input
-                    hidden
-                    id="img"
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.svg"
-                    onChange={handlerInputImage}
-                />
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => setDialogOpne(true)}
-            >
-                プルト入力
-            </Button>
-            <Dialog open={dialogOpne} onClose={handleCalcelPlut} fullWidth>
-                <DialogTitle>プルト入力</DialogTitle>
-                <DialogContent >
-                    <TextField
-                        fullWidth
-                        multiline
-                        rows={20}
-                        value={pultText}
-                        onChange={(e) => setPultText(e.target.value)}
-                    ></TextField>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleSavePlut}>保存</Button>
-                    <Button onClick={handleCalcelPlut}>キャンセル</Button>
-                </DialogActions>
-            </Dialog>
+            <div className="nav-button-container">
+                <Button variant="contained" component="label">
+                    背景画像をアップロード
+                    {/*
+                    materila ui の Button に input を仕込む方法
+                    https://stackoverflow.com/questions/40589302/how-to-enable-file-upload-on-reacts-material-ui-simple-input */}
+                    <input
+                        hidden
+                        id="img"
+                        type="file"
+                        accept=".png,.jpg,.jpeg,.svg"
+                        onChange={handleLoadImage}
+                    />
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setInputOpen(true)}
+                >
+                    プルト入力
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setExportOpen(true)}
+                >
+                    Export
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setImportOpen(true)}
+                >
+                    Import
+                </Button>
+            </div>
+            <div className="nav-version">
+                <Typography color={"white"} variant="body2" align="center">© {new Date().getFullYear()} uttne</Typography>
+                <Typography color={"white"} variant="body2" align="center">MSP Canvas v{(window as any).APP_VERSION}</Typography>
+            </div>
+            
+            <InputDialog open={inputOpen} onClose={handleInputClose} />
+            <ExportDialog open={exportOpen} onClose={handleExportClose} />
+            <ImportDialog open={importOpen} onClose={handleImportClose} />
         </div>
     );
 }

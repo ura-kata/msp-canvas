@@ -5,8 +5,19 @@
     display: flex;
     flex-flow: column;
 
-    >.MuiButton-root {
-        margin: 0.2em;
+    >.nav-button-container{
+        height: calc(100% - 3em);
+        width: 100%;
+
+        display: flex;
+        flex-flow: column;
+        >.MuiButton-root {
+            margin: 0.2em;
+        }
+    }
+    >.nav-version{
+        height: 3em;
+        width: 100%;
     }
 }
 
