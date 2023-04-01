@@ -5,6 +5,15 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   define: {
-    APP_VERSION: JSON.stringify(process.env.npm_package_version)
+    APP_VERSION: JSON.stringify(process.env.npm_package_version),
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        globals: {
+          APP_VERSION: 'APP_VERSION',
+        }
+      }
+    }
   }
 })
