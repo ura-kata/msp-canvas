@@ -165,8 +165,9 @@ export function ImportDialog(props: ImportDialogProps) {
                 accept=".svg"
                 onChange={handleLoadSvg}
             />
-            </Button>
-            <Button onClick={handleImportPng}>PNG</Button>
+                </Button>
+            {/* TODO: PNGのインポート機能を実装する */}
+            {/* <Button onClick={handleImportPng}>PNG</Button> */}
         </>
     );
 
