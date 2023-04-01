@@ -5,6 +5,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { ImportDialog } from "./ImportDialog";
 import { ExportDialog } from "./ExportDialog";
 import { InputDialog } from "./InputDialog";
+import { Typography } from "@mui/material";
 
 
 export class NavProps {
@@ -37,40 +38,47 @@ export function Control(props: NavProps) {
 
     return (
         <div className={"nav-root " + props.className}>
-            <Button variant="contained" component="label">
-                背景画像をアップロード
-                {/*
-                materila ui の Button に input を仕込む方法
-                https://stackoverflow.com/questions/40589302/how-to-enable-file-upload-on-reacts-material-ui-simple-input */}
-                <input
-                    hidden
-                    id="img"
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.svg"
-                    onChange={handleLoadImage}
-                />
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => setInputOpen(true)}
-            >
-                プルト入力
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => setExportOpen(true)}
-            >
-                Export
-            </Button>
-            <Button
-                variant="contained"
-                component="label"
-                onClick={() => setImportOpen(true)}
-            >
-                Import
-            </Button>
+            <div className="nav-button-container">
+                <Button variant="contained" component="label">
+                    背景画像をアップロード
+                    {/*
+                    materila ui の Button に input を仕込む方法
+                    https://stackoverflow.com/questions/40589302/how-to-enable-file-upload-on-reacts-material-ui-simple-input */}
+                    <input
+                        hidden
+                        id="img"
+                        type="file"
+                        accept=".png,.jpg,.jpeg,.svg"
+                        onChange={handleLoadImage}
+                    />
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setInputOpen(true)}
+                >
+                    プルト入力
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setExportOpen(true)}
+                >
+                    Export
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setImportOpen(true)}
+                >
+                    Import
+                </Button>
+            </div>
+            <div className="nav-version">
+                <Typography color={"white"} variant="body2" align="center">© {new Date().getFullYear()} uttne</Typography>
+                <Typography color={"white"} variant="body2" align="center">MSP Canvas v{(window as any).APP_VERSION}</Typography>
+            </div>
+            
             <InputDialog open={inputOpen} onClose={handleInputClose} />
             <ExportDialog open={exportOpen} onClose={handleExportClose} />
             <ImportDialog open={importOpen} onClose={handleImportClose} />
