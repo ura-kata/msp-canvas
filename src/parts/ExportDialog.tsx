@@ -176,7 +176,8 @@ export function ExportDialog(props: ExportDialogProps) {
         return <>
             <Button onClick={handleExportText}>Json</Button>
             <Button onClick={handleExportSvg}>SVG</Button>
-            <Button onClick={handleExportPng}>PNG</Button>
+            {/* TODO: PNG のエクスポートを実装する */}
+            {/* <Button onClick={handleExportPng}>PNG</Button> */}
         </>;
      })(); 
 
