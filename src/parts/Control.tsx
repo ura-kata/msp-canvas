@@ -76,7 +76,7 @@ export function Control(props: NavProps) {
             </div>
             <div className="nav-version">
                 <Typography color={"white"} variant="body2" align="center">© {new Date().getFullYear()} uttne</Typography>
-                <Typography color={"white"} variant="body2" align="center">MSP Canvas v{(window as any).APP_VERSION}</Typography>
+                <Typography color={"white"} variant="body2" align="center">MSP Canvas v{__APP_VERSION__}</Typography>
             </div>
             
             <InputDialog open={inputOpen} onClose={handleInputClose} />
