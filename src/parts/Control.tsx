@@ -5,8 +5,27 @@ import { useAppContext } from "../contexts/AppContext";
 import { ImportDialog } from "./ImportDialog";
 import { ExportDialog } from "./ExportDialog";
 import { InputDialog } from "./InputDialog";
-import { Typography } from "@mui/material";
+import { Slider, Stack, Typography } from "@mui/material";
 
+function ScaleSlider() {
+
+    const { data, setData } = useAppContext();
+
+    const handleOnChangeScale = (event: Event, value: number | number[], activeThumb: number) => {
+
+        const newValue = (() => {
+            if (Array.isArray(value)) {
+                return value[0];
+            }
+            return value;
+        })();
+        
+        setData({ ...data, scale: newValue });
+    };
+    return <div className="nav-slider-container">
+        <Slider valueLabelDisplay="on" value={ data.scale} onChange={handleOnChangeScale} min={1} max={1000}></Slider>
+    </div>
+}
 
 export class NavProps {
     className?: string;
@@ -73,6 +92,7 @@ export function Control(props: NavProps) {
                 >
                     Import
                 </Button>
+                <ScaleSlider />
             </div>
             <div className="nav-version">
                 <Typography color={"white"} variant="body2" align="center">© {new Date().getFullYear()} uttne</Typography>

@@ -44,11 +44,14 @@ export interface AppContextData {
     fileData?: FileData;
     pults: PultD3Data[];
     plutText?: string;
+    /** pixel/m */
+    scale: number;
 }
 
 export function AppContextProvider(props: AppContextProviderProps) {
     const [data, setData] = useState<AppContextData>({
         pults: [],
+        scale: 400
     });
 
     useEffect(() => {

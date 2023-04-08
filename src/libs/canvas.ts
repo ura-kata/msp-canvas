@@ -74,8 +74,16 @@ export function drawBackgroundImage(
 export function drawPult(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     data: PultD3Data[],
-    handleContextMenu: (clientX: number, clientY: number, d: PultD3Data) => void
+    handleContextMenu: (clientX: number, clientY: number, d: PultD3Data) => void,
+    /** pixel/m */
+    scale: number = 400
 ) {
+    
+    // 1人を表す円のサイズは 0.5 mと仮置きする
+    const size = 0.5;
+    const height = size * scale; 
+    const width = size * scale; 
+    
     const layer = svg.select(".draw-layer");
     {
         const move = (d: PultD3Data) => {
@@ -83,8 +91,8 @@ export function drawPult(
             layer
                 .select<SVGSVGElement>(".plut-g.plut-drag-" + d.id)
                 .data(data)
-                .attr("x", (d) => d.cx - 100)
-                .attr("y", (d) => d.cy - 100);
+                .attr("x", (d) => d.cx - (width * 0.5))
+                .attr("y", (d) => d.cy - (height * 0.5));
         };
 
         const dragStarted = (e: any, d: PultD3Data) => {};
@@ -131,14 +139,15 @@ export function drawPult(
 
         // 増えた分に merge で update 分(通常の select の後)を足して一緒に処理をする
         // type が変わったときにも更新できるように
+        
         newChainSvg
             .merge(chain)
             .attr("class", (d) => "plut-g plut-drag-" + d.id)
             .attr("viewBox", "0 0 200 200")
-            .attr("height", "200")
-            .attr("width", "200")
-            .attr("x", (d) => d.cx - 100)
-            .attr("y", (d) => d.cy - 100)
+            .attr("height", height)
+            .attr("width", width)
+            .attr("x", (d) => d.cx - (width * 0.5))
+            .attr("y", (d) => d.cy - (height * 0.5))
             .call(dragSvg);
 
         // データが変わったときに必ず全体を更新する

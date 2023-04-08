@@ -80,6 +80,8 @@ function SvgContent() {
     const [imgSrc, setImgSrc] = useState("");
     const [exportData, setExportData] = useState<string>();
 
+    const scale = data.scale;
+
     useEffect(() => { 
         if (svg.current) return;
         const s = createSvg("#export-svg-data");
@@ -98,9 +100,9 @@ function SvgContent() {
         // TODO: ハンドラを設定しなくても描画できるように設定と動作は分けて実装する
         const handleTargetContextMenu = (clientX: number, clientY: number, d: PultD3Data) => {
         };
-        drawPult(s, pults, handleTargetContextMenu);
+        drawPult(s, pults, handleTargetContextMenu, scale);
         setDrawImage(true);
-    }, [svg.current, backgroundImageData, pults]);
+    }, [svg.current, backgroundImageData, pults, scale]);
 
     useEffect(() => {
         const url = backgroundImageData?.url;
