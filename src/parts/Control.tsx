@@ -6,6 +6,8 @@ import { ImportDialog } from "./ImportDialog";
 import { ExportDialog } from "./ExportDialog";
 import { InputDialog } from "./InputDialog";
 import { Slider, Stack, Typography } from "@mui/material";
+import { InputPartsDialog } from "./InputPartsDialog";
+import { InputMemberDialog } from "./InputMemberDialog";
 
 function ScaleSlider() {
 
@@ -42,6 +44,8 @@ export function Control(props: NavProps) {
     const [inputOpen, setInputOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
     const [importOpen, setImportOpen] = useState(false);
+    const [inputPartsOpen, setInputPartsOpen] = useState(false);
+    const [inputMemberOpen, setInputMemberOpen] = useState(false);
 
     const handleInputClose = () => {
         setInputOpen(false);
@@ -81,6 +85,20 @@ export function Control(props: NavProps) {
                 <Button
                     variant="contained"
                     component="label"
+                    onClick={() => setInputPartsOpen(true)}
+                >
+                    パート入力
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setInputMemberOpen(true)}
+                >
+                    出演者入力
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
                     onClick={() => setExportOpen(true)}
                 >
                     Export
@@ -102,6 +120,8 @@ export function Control(props: NavProps) {
             <InputDialog open={inputOpen} onClose={handleInputClose} />
             <ExportDialog open={exportOpen} onClose={handleExportClose} />
             <ImportDialog open={importOpen} onClose={handleImportClose} />
+            <InputPartsDialog open={inputPartsOpen} onClose={()=>setInputPartsOpen(false)} />
+            <InputMemberDialog open={inputMemberOpen} onClose={() => setInputMemberOpen(false)} />
         </div>
     );
 }

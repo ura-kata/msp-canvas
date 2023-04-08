@@ -1,15 +1,19 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    useCallback,
+} from "react";
 import { base64ToFile } from "../libs/utils";
 
 export interface AppContextInterface {
     data: AppContextData;
     setData: React.Dispatch<React.SetStateAction<AppContextData>>;
-    loadExportData: (exData: ExportDataV1)=>void;
+    loadExportData: (exData: ExportDataV1) => void;
 }
 
-export const AppContext = createContext(
-    {} as AppContextInterface
-);
+export const AppContext = createContext({} as AppContextInterface);
 
 export class AppContextProviderProps {
     children: React.ReactNode;
@@ -30,8 +34,15 @@ export interface PultD3Data {
     color?: string;
 }
 
-export interface ExportDataV1{
-    version: "1"
+export interface PartData {
+    id: string;
+    name: string;
+    color: string;
+    size: number;
+}
+
+export interface ExportDataV1 {
+    version: "1";
     pultText: string;
     pults: PultD3Data[];
     backgroundImage: string;
@@ -43,6 +54,7 @@ export interface AppContextData {
     fileUrl?: string;
     fileData?: FileData;
     pults: PultD3Data[];
+    parts: PartData[];
     plutText?: string;
     /** pixel/m */
     scale: number;
@@ -51,7 +63,8 @@ export interface AppContextData {
 export function AppContextProvider(props: AppContextProviderProps) {
     const [data, setData] = useState<AppContextData>({
         pults: [],
-        scale: 400
+        parts: [],
+        scale: 400,
     });
 
     useEffect(() => {
@@ -97,13 +110,15 @@ export function AppContextProvider(props: AppContextProviderProps) {
             prevPluts[p.lineNo] = p;
         });
 
-        const getColor = (line: string): {color?:string,other:string}=>{
+        const getColor = (line: string): { color?: string; other: string } => {
             const match = /#color:(.+?)( |$)/.exec(line);
-            if (match){
-                const other = line.slice(0, match.index) + line.slice(match.index+match[0].length);
-                return {color:match[1],other: other};
+            if (match) {
+                const other =
+                    line.slice(0, match.index) +
+                    line.slice(match.index + match[0].length);
+                return { color: match[1], other: other };
             }
-            return {other: line};
+            return { other: line };
         };
 
         const pults = lines
@@ -115,13 +130,13 @@ export function AppContextProvider(props: AppContextProviderProps) {
                     return undefined;
                 }
 
-                const {other, color} = getColor(line);
+                const { other, color } = getColor(line);
                 const name = other.trim();
 
                 if (i in prevPluts) {
                     const t = prevPluts[i];
                     t.name = name;
-                    t.display = name.slice(0,2)
+                    t.display = name.slice(0, 2);
                     t.color = color;
                     return t;
                 } else {
@@ -130,9 +145,9 @@ export function AppContextProvider(props: AppContextProviderProps) {
                         cx: 200,
                         cy: 200,
                         id: crypto.randomUUID(),
-                        display: name.slice(0,2),
+                        display: name.slice(0, 2),
                         lineNo: i,
-                        color: color
+                        color: color,
                     } as PultD3Data;
                 }
             })
@@ -147,17 +162,22 @@ export function AppContextProvider(props: AppContextProviderProps) {
         setData((d) => ({ ...d, plutText: pultData }));
     }, []);
 
-    const loadExportData = useCallback((exData: ExportDataV1)=>{
+    const loadExportData = useCallback(
+        (exData: ExportDataV1) => {
+            const backgroundImage = base64ToFile(
+                exData.backgroundImage,
+                exData.backgroundImageMimeType
+            );
 
-        const backgroundImage = base64ToFile(exData.backgroundImage,exData.backgroundImageMimeType);
-        
-        setData(d=>({...d,
-            plutText: exData.pultText,
-            pults: exData.pults,
-            file: backgroundImage
-        }));
-
-    },[data]);
+            setData((d) => ({
+                ...d,
+                plutText: exData.pultText,
+                pults: exData.pults,
+                file: backgroundImage,
+            }));
+        },
+        [data]
+    );
 
     return (
         <AppContext.Provider value={{ data, setData, loadExportData }}>
