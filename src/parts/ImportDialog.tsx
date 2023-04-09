@@ -1,10 +1,19 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    TextField,
+} from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { ExportDataV1, useAppContext } from "../contexts/AppContext";
+import {
+    ExportDataV1,
+    ExportDataV2,
+    useAppContext,
+} from "../contexts/AppContext";
 
-
-
-interface ImportSvgContentProps{
+interface ImportSvgContentProps {
     svgFile: File;
     onClose?: () => void;
 }
@@ -13,21 +22,22 @@ function ImportSvgContent(props: ImportSvgContentProps) {
     const { loadExportData } = useAppContext();
     const [loadedSvg, setLoadedSvg] = useState<boolean>();
     const [errMsg, setErrMsg] = useState("");
-    const [exportData, setExportData] = useState<ExportDataV1>();
-    
+    const [exportData, setExportData] = useState<ExportDataV2>();
+
     const imageUrl = useMemo(() => {
         if (!exportData) return null;
         return window.URL.createObjectURL(props.svgFile);
     }, [props.svgFile, exportData]);
 
-    
-    useEffect(() => { 
+    useEffect(() => {
         // SVG をタグとして読み込む
         const fr = new FileReader();
 
-        fr.onload = (ev) => { 
+        fr.onload = (ev) => {
             const svgText = fr.result as string;
-            const rootDiv = document.getElementById("import-svg-data") as HTMLDivElement;
+            const rootDiv = document.getElementById(
+                "import-svg-data"
+            ) as HTMLDivElement;
 
             rootDiv.innerHTML = svgText;
             setLoadedSvg(true);
@@ -35,14 +45,13 @@ function ImportSvgContent(props: ImportSvgContentProps) {
         fr.readAsText(props.svgFile);
     }, [props.svgFile]);
 
-    useEffect(() => { 
+    useEffect(() => {
         if (!loadedSvg) return;
 
-        
         const svgElement = document.querySelector("#import-svg-data > svg");
         if (!svgElement) return;
 
-        function findCommentNode(elem: Element): Comment | null{
+        function findCommentNode(elem: Element): Comment | null {
             for (const child of elem.childNodes) {
                 if (child.nodeType === Node.COMMENT_NODE) {
                     return child as Comment;
@@ -56,37 +65,49 @@ function ImportSvgContent(props: ImportSvgContentProps) {
 
             if (comment) {
                 const importData = comment.data;
-                const exportData: ExportDataV1 = JSON.parse(importData);
-                setExportData(exportData);
+                const exportData: ExportDataV1 | ExportDataV2 =
+                    JSON.parse(importData);
 
-                setErrMsg("");
-            }
-            else {
+                if (exportData.version !== "2") {
+                    setErrMsg(
+                        "Import 用のデータの version が 2 ではないファイルです"
+                    );
+                } else {
+                    setExportData(exportData);
+                    setErrMsg("");
+                }
+            } else {
                 setErrMsg("Import 用のデータがない SVG ファイルです");
             }
-        }
-        catch {
+        } catch {
             setErrMsg("Import に失敗しました");
         }
-
     }, [loadedSvg]);
 
-    const handleOnLoad = () => { 
+    const handleOnLoad = () => {
         if (!exportData) return;
         loadExportData(exportData);
         if (props.onClose) {
-            props.onClose();    
+            props.onClose();
         }
     };
-    return <>
-        <div id="import-svg-data" style={{ display: "none" }}></div>
-        <div id="import-svg-previwe">
-            {errMsg ? <p>{ errMsg}</p> : <></>}
-            {imageUrl ? <><img src={imageUrl}></img><Button onClick={handleOnLoad}>読み込む</Button></> : <></>}
-        </div>
-    </>
+    return (
+        <>
+            <div id="import-svg-data" style={{ display: "none" }}></div>
+            <div id="import-svg-previwe">
+                {errMsg ? <p>{errMsg}</p> : <></>}
+                {imageUrl ? (
+                    <>
+                        <img src={imageUrl}></img>
+                        <Button onClick={handleOnLoad}>読み込む</Button>
+                    </>
+                ) : (
+                    <></>
+                )}
+            </div>
+        </>
+    );
 }
-
 
 interface ImportDialogProps {
     open: boolean;
@@ -99,18 +120,18 @@ export function ImportDialog(props: ImportDialogProps) {
     const [isError, setIsError] = useState(false);
     const [loadedSvgFile, setLoadedSvgFile] = useState<File>();
 
-    const init = () => { 
+    const init = () => {
         setImportJsonOpen(false);
         setImportJsonText(undefined);
         setIsError(false);
         setLoadedSvgFile(undefined);
-    }
+    };
 
     const handleImportTextClick = () => {
         setImportJsonOpen(true);
     };
-    const handleImportPng = async () => { };
-    
+    const handleImportPng = async () => {};
+
     const handleLoadSvg = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
         const img = e.target.files[0];
@@ -122,7 +143,14 @@ export function ImportDialog(props: ImportDialogProps) {
             return;
         }
         try {
-            const exportData: ExportDataV1 = JSON.parse(importJsonText);
+            const exportData: ExportDataV1 | ExportDataV2 =
+                JSON.parse(importJsonText);
+
+            if (exportData.version !== "2") {
+                throw new Error(
+                    "インポートしたデータの version が '2' ではありませんでした"
+                );
+            }
 
             loadExportData(exportData);
             setImportJsonText(undefined);
@@ -134,7 +162,7 @@ export function ImportDialog(props: ImportDialogProps) {
         }
     };
 
-    const handleOnClose = () => { 
+    const handleOnClose = () => {
         props.onClose();
         init();
     };
@@ -153,19 +181,21 @@ export function ImportDialog(props: ImportDialogProps) {
             />
             <Button onClick={handleImportText}>Import</Button>
         </>
-    ) : loadedSvgFile ? <ImportSvgContent svgFile={loadedSvgFile} onClose={ handleOnClose} /> : (
+    ) : loadedSvgFile ? (
+        <ImportSvgContent svgFile={loadedSvgFile} onClose={handleOnClose} />
+    ) : (
         <>
             <Button onClick={handleImportTextClick}>Json</Button>
             <Button component="label">
-            SVG
-            <input
-                hidden
-                id="import-svg-img"
-                type="file"
-                accept=".svg"
-                onChange={handleLoadSvg}
-            />
-                </Button>
+                SVG
+                <input
+                    hidden
+                    id="import-svg-img"
+                    type="file"
+                    accept=".svg"
+                    onChange={handleLoadSvg}
+                />
+            </Button>
             {/* TODO: PNGのインポート機能を実装する */}
             {/* <Button onClick={handleImportPng}>PNG</Button> */}
         </>
@@ -174,9 +204,7 @@ export function ImportDialog(props: ImportDialogProps) {
     return (
         <Dialog open={props.open} onClose={handleOnClose} fullWidth>
             <DialogTitle>Import</DialogTitle>
-            <DialogContent>
-                {Content}
-            </DialogContent>
+            <DialogContent>{Content}</DialogContent>
             <DialogActions>
                 <Button onClick={handleOnClose}>閉じる</Button>
             </DialogActions>

@@ -79,10 +79,8 @@ export function drawPult(
     scale: number = 400
 ) {
     
-    // 1人を表す円のサイズは 0.5 mと仮置きする
-    const size = 0.5;
-    const height = size * scale; 
-    const width = size * scale; 
+    const calcHeight = (d: PultD3Data) => d.size * scale;
+    const calcWidth = (d: PultD3Data) => d.size * scale;
     
     const layer = svg.select(".draw-layer");
     {
@@ -91,8 +89,8 @@ export function drawPult(
             layer
                 .select<SVGSVGElement>(".plut-g.plut-drag-" + d.id)
                 .data(data)
-                .attr("x", (d) => d.cx - (width * 0.5))
-                .attr("y", (d) => d.cy - (height * 0.5));
+                .attr("x", (d) => d.cx - (calcWidth(d) * 0.5))
+                .attr("y", (d) => d.cy - (calcHeight(d) * 0.5));
         };
 
         const dragStarted = (e: any, d: PultD3Data) => {};
@@ -144,10 +142,10 @@ export function drawPult(
             .merge(chain)
             .attr("class", (d) => "plut-g plut-drag-" + d.id)
             .attr("viewBox", "0 0 200 200")
-            .attr("height", height)
-            .attr("width", width)
-            .attr("x", (d) => d.cx - (width * 0.5))
-            .attr("y", (d) => d.cy - (height * 0.5))
+            .attr("height", calcHeight)
+            .attr("width", calcWidth)
+            .attr("x", (d) => d.cx - (calcWidth(d) * 0.5))
+            .attr("y", (d) => d.cy - (calcHeight(d) * 0.5))
             .call(dragSvg);
 
         // データが変わったときに必ず全体を更新する

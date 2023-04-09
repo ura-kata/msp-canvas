@@ -10,23 +10,33 @@ import { InputPartsDialog } from "./InputPartsDialog";
 import { InputMemberDialog } from "./InputMemberDialog";
 
 function ScaleSlider() {
-
     const { data, setData } = useAppContext();
 
-    const handleOnChangeScale = (event: Event, value: number | number[], activeThumb: number) => {
-
+    const handleOnChangeScale = (
+        event: Event,
+        value: number | number[],
+        activeThumb: number
+    ) => {
         const newValue = (() => {
             if (Array.isArray(value)) {
                 return value[0];
             }
             return value;
         })();
-        
+
         setData({ ...data, scale: newValue });
     };
-    return <div className="nav-slider-container">
-        <Slider valueLabelDisplay="on" value={ data.scale} onChange={handleOnChangeScale} min={1} max={1000}></Slider>
-    </div>
+    return (
+        <div className="nav-slider-container">
+            <Slider
+                valueLabelDisplay="on"
+                value={data.scale}
+                onChange={handleOnChangeScale}
+                min={1}
+                max={1000}
+            ></Slider>
+        </div>
+    );
 }
 
 export class NavProps {
@@ -78,13 +88,6 @@ export function Control(props: NavProps) {
                 <Button
                     variant="contained"
                     component="label"
-                    onClick={() => setInputOpen(true)}
-                >
-                    プルト入力
-                </Button>
-                <Button
-                    variant="contained"
-                    component="label"
                     onClick={() => setInputPartsOpen(true)}
                 >
                     パート入力
@@ -113,15 +116,25 @@ export function Control(props: NavProps) {
                 <ScaleSlider />
             </div>
             <div className="nav-version">
-                <Typography color={"white"} variant="body2" align="center">© {new Date().getFullYear()} uttne</Typography>
-                <Typography color={"white"} variant="body2" align="center">MSP Canvas v{__APP_VERSION__}</Typography>
+                <Typography color={"white"} variant="body2" align="center">
+                    © {new Date().getFullYear()} uttne
+                </Typography>
+                <Typography color={"white"} variant="body2" align="center">
+                    MSP Canvas v{__APP_VERSION__}
+                </Typography>
             </div>
-            
+
             <InputDialog open={inputOpen} onClose={handleInputClose} />
             <ExportDialog open={exportOpen} onClose={handleExportClose} />
             <ImportDialog open={importOpen} onClose={handleImportClose} />
-            <InputPartsDialog open={inputPartsOpen} onClose={()=>setInputPartsOpen(false)} />
-            <InputMemberDialog open={inputMemberOpen} onClose={() => setInputMemberOpen(false)} />
+            <InputPartsDialog
+                open={inputPartsOpen}
+                onClose={() => setInputPartsOpen(false)}
+            />
+            <InputMemberDialog
+                open={inputMemberOpen}
+                onClose={() => setInputMemberOpen(false)}
+            />
         </div>
     );
 }
