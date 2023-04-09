@@ -1,22 +1,40 @@
 import { useEffect, useRef, useState } from "react";
-import { AppContextData, ExportDataV1, PultD3Data, useAppContext } from "../contexts/AppContext";
+import {
+    AppContextData,
+    ExportDataV1,
+    ExportDataV2,
+    PultD3Data,
+    useAppContext,
+} from "../contexts/AppContext";
 import { useBackgroundImage } from "../hooks/useBackgroundImage";
 import { usePults } from "../hooks/usePults";
-import { createSvg, drawBackgroundImage, drawPult, initRootSvg } from "../libs/canvas";
+import {
+    createSvg,
+    drawBackgroundImage,
+    drawPult,
+    initRootSvg,
+} from "../libs/canvas";
 import { format } from "date-fns";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    TextField,
+} from "@mui/material";
 import { fileToBase64 } from "../libs/utils";
 
-
-async function createExportDataV1(backgroundUrl: string, data: AppContextData) {
+async function createExportDataV2(backgroundUrl: string, data: AppContextData) {
     const blob = await fetch(backgroundUrl).then((r) => r.blob());
 
     const { base64, mimeType } = await fileToBase64(blob);
 
-    const exportData: ExportDataV1 = {
-        version: "1",
-        pultText: data.plutText ?? "",
+    const exportData: ExportDataV2 = {
+        version: "2",
         pults: data.pults,
+        parts: data.parts,
+        members: data.members,
         backgroundImage: base64,
         backgroundImageMimeType: mimeType,
     };
@@ -26,7 +44,6 @@ async function createExportDataV1(backgroundUrl: string, data: AppContextData) {
 }
 
 function JsonContent() {
-    
     const { data } = useAppContext();
     const backgroundImage = useBackgroundImage();
     const [exportJsonText, setExportJsonText] = useState<string>();
@@ -36,37 +53,39 @@ function JsonContent() {
         if (!url) return;
 
         const f = async () => {
-            const exportDataJson = await createExportDataV1(url, data);
+            const exportDataJson = await createExportDataV2(url, data);
             setExportJsonText(exportDataJson);
         };
 
         f();
-        
     }, [backgroundImage]);
-    
-    const handleDownloadClick = () => { 
-        if (!exportJsonText)
-            return;
-        
+
+    const handleDownloadClick = () => {
+        if (!exportJsonText) return;
+
         const decoded = unescape(encodeURIComponent(exportJsonText));
 
         const base64 = btoa(decoded);
 
         const jsonSrc = `data:application/json;base64,${base64}`;
 
-        
         const a = document.createElement("a");
         a.href = jsonSrc;
         a.download = format(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".msp.json";
         a.target = "_blank";
         a.click();
     };
-    return <><TextField
-        fullWidth
-        value={exportJsonText}
-        rows={15}
-        multiline
-    ></TextField><Button onClick={handleDownloadClick}>ダウンロード</Button></>;
+    return (
+        <>
+            <TextField
+                fullWidth
+                value={exportJsonText}
+                rows={15}
+                multiline
+            ></TextField>
+            <Button onClick={handleDownloadClick}>ダウンロード</Button>
+        </>
+    );
 }
 
 function SvgContent() {
@@ -80,13 +99,15 @@ function SvgContent() {
     const [imgSrc, setImgSrc] = useState("");
     const [exportData, setExportData] = useState<string>();
 
-    useEffect(() => { 
+    const scale = data.scale;
+
+    useEffect(() => {
         if (svg.current) return;
         const s = createSvg("#export-svg-data");
         svg.current = s;
         initRootSvg(s);
     }, [svg.current]);
-    
+
     useEffect(() => {
         const s = svg.current;
         if (!s) return;
@@ -94,27 +115,29 @@ function SvgContent() {
         if (!backgroundImageData) return;
 
         drawBackgroundImage(s, backgroundImageData, true);
-        
+
         // TODO: ハンドラを設定しなくても描画できるように設定と動作は分けて実装する
-        const handleTargetContextMenu = (clientX: number, clientY: number, d: PultD3Data) => {
-        };
-        drawPult(s, pults, handleTargetContextMenu);
+        const handleTargetContextMenu = (
+            clientX: number,
+            clientY: number,
+            d: PultD3Data
+        ) => {};
+        drawPult(s, pults, handleTargetContextMenu, scale);
         setDrawImage(true);
-    }, [svg.current, backgroundImageData, pults]);
+    }, [svg.current, backgroundImageData, pults, scale]);
 
     useEffect(() => {
         const url = backgroundImageData?.url;
         if (!url) return;
         const f = async () => {
-            const exportData = await createExportDataV1(url, data);
+            const exportData = await createExportDataV2(url, data);
             setExportData(exportData);
         };
 
         f();
-        
     }, [backgroundImageData]);
 
-    useEffect(() => { 
+    useEffect(() => {
         if (!drawImage) return;
         if (!exportData) return;
 
@@ -145,10 +168,25 @@ function SvgContent() {
         a.target = "_blank";
         a.click();
     };
-    
-    return <><div id="export-svg-data" style={{display:"none"}}></div><div id="export-svg-previwe">{imgSrc ? <><img src={ imgSrc}></img><Button onClick={handleDownloadClick}>ダウンロード</Button></> : <></>}</div></>
-}
 
+    return (
+        <>
+            <div id="export-svg-data" style={{ display: "none" }}></div>
+            <div id="export-svg-previwe">
+                {imgSrc ? (
+                    <>
+                        <img src={imgSrc}></img>
+                        <Button onClick={handleDownloadClick}>
+                            ダウンロード
+                        </Button>
+                    </>
+                ) : (
+                    <></>
+                )}
+            </div>
+        </>
+    );
+}
 
 interface ExportDialogProps {
     open: boolean;
@@ -172,14 +210,16 @@ export function ExportDialog(props: ExportDialogProps) {
             case "svg":
                 return <SvgContent />;
         }
-        
-        return <>
-            <Button onClick={handleExportText}>Json</Button>
-            <Button onClick={handleExportSvg}>SVG</Button>
-            {/* TODO: PNG のエクスポートを実装する */}
-            {/* <Button onClick={handleExportPng}>PNG</Button> */}
-        </>;
-     })(); 
+
+        return (
+            <>
+                <Button onClick={handleExportText}>Json</Button>
+                <Button onClick={handleExportSvg}>SVG</Button>
+                {/* TODO: PNG のエクスポートを実装する */}
+                {/* <Button onClick={handleExportPng}>PNG</Button> */}
+            </>
+        );
+    })();
 
     return (
         <Dialog open={props.open} onClose={props.onClose} fullWidth>

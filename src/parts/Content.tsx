@@ -108,6 +108,7 @@ export function Content(props: ContentProps) {
     const { svg, contentRootRef } = useRootSvg();
 
     const pults = usePults();
+    const scale = data.scale;
 
     useEffect(() => {
         const div = contentRootRef.current as HTMLDivElement;
@@ -162,8 +163,8 @@ export function Content(props: ContentProps) {
         if (!s) return;
 
         drawBackgroundImage(svg, backgroundImageData);
-        drawPult(svg, pults, handleTargetContextMenu);
-    }, [svg, backgroundImageData, pults, handleTargetContextMenu]);
+        drawPult(svg, pults, handleTargetContextMenu, scale);
+    }, [svg, backgroundImageData, pults, handleTargetContextMenu, scale]);
 
     useEffect(() => {
         // DEBUG

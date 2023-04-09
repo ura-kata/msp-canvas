@@ -1,15 +1,19 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    useCallback,
+} from "react";
 import { base64ToFile } from "../libs/utils";
 
 export interface AppContextInterface {
     data: AppContextData;
     setData: React.Dispatch<React.SetStateAction<AppContextData>>;
-    loadExportData: (exData: ExportDataV1)=>void;
+    loadExportData: (exData: ExportDataV2) => void;
 }
 
-export const AppContext = createContext(
-    {} as AppContextInterface
-);
+export const AppContext = createContext({} as AppContextInterface);
 
 export class AppContextProviderProps {
     children: React.ReactNode;
@@ -28,14 +32,37 @@ export interface PultD3Data {
     display: string;
     lineNo: number;
     color?: string;
+    size: number;
 }
 
-export interface ExportDataV1{
-    version: "1"
+export interface PartData {
+    id: string;
+    name: string;
+    color: string;
+    size: number;
+}
+
+export interface MemberData {
+    id: string;
+    name: string;
+    display: string;
+    partId: string | null;
+}
+
+export interface ExportDataV1 {
+    version: "1";
     pultText: string;
     pults: PultD3Data[];
     backgroundImage: string;
     backgroundImageMimeType: string;
+}
+export interface ExportDataV2 {
+    version: "2";
+    pults: PultD3Data[];
+    backgroundImage: string;
+    backgroundImageMimeType: string;
+    parts: PartData[];
+    members: MemberData[];
 }
 
 export interface AppContextData {
@@ -43,12 +70,58 @@ export interface AppContextData {
     fileUrl?: string;
     fileData?: FileData;
     pults: PultD3Data[];
+    parts: PartData[];
+    members: MemberData[];
     plutText?: string;
+    /** pixel/m */
+    scale: number;
 }
+
+const DefaultParts: PartData[] = [
+    {
+        name: "Vn. 1",
+        color: "#800000",
+        id: "6817baa3-244e-456d-8a62-70e495fade0e",
+        size: 0.5,
+    },
+    {
+        name: "Vn. 2",
+        color: "#ff8c00",
+        id: "f69a5deb-0a2f-4e60-bbf6-99cced841071",
+        size: 0.5,
+    },
+    {
+        name: "Va.",
+        color: "#2e8b57",
+        id: "96d8374a-5769-4b74-b240-aa9b5f43a425",
+        size: 0.5,
+    },
+    {
+        name: "Vc.",
+        color: "#4682b4",
+        id: "8eb13cf6-d3b2-4e76-a0de-a4536ffa4c9f",
+        size: 0.5,
+    },
+    {
+        name: "Cb.",
+        color: "#800080",
+        id: "277c5317-ea27-4844-a851-091bf0e769a7",
+        size: 0.5,
+    },
+    {
+        name: "Cond.",
+        color: "#000000",
+        id: "85f3ecb8-451a-431f-a5e6-8ddb13701f27",
+        size: 0.5,
+    },
+];
 
 export function AppContextProvider(props: AppContextProviderProps) {
     const [data, setData] = useState<AppContextData>({
         pults: [],
+        parts: DefaultParts,
+        members: [],
+        scale: 400,
     });
 
     useEffect(() => {
@@ -85,58 +158,50 @@ export function AppContextProvider(props: AppContextProviderProps) {
     }, [data.file]);
 
     useEffect(() => {
-        const pultData = data.plutText ?? "";
+        const members = data.members ?? [];
+        const parts = data.parts ?? [];
+        const partDict = parts.reduce((prev, curr) => {
+            return { ...prev, [curr.id]: curr };
+        }, {} as { [id: string]: PartData });
 
-        const lines = pultData.split(/\r\n|\n/);
-
-        const prevPluts: { [lineNo: number]: PultD3Data } = {};
+        const prevPluts: { [id: string]: PultD3Data } = {};
         data.pults.forEach((p) => {
-            prevPluts[p.lineNo] = p;
+            prevPluts[p.id] = p;
         });
 
-        const getColor = (line: string): {color?:string,other:string}=>{
-            const match = /#color:(.+?)( |$)/.exec(line);
-            if (match){
-                const other = line.slice(0, match.index) + line.slice(match.index+match[0].length);
-                return {color:match[1],other: other};
-            }
-            return {other: line};
-        };
+        const pults = members
+            .map((m) => {
+                const id = m.id;
+                const name = m.name;
+                const display = m.display;
+                const part = m.partId ? partDict[m.partId] : undefined;
+                const color = part?.color ?? "#000";
+                const size = part?.size === undefined ? 1 : part.size;
 
-        const pults = lines
-            .map((l, i) => {
-                let line = l.trim();
-
-                if (line.length === 0) {
-                    // 文字列がなければオブジェクトを作らない
-                    return undefined;
-                }
-
-                const {other, color} = getColor(line);
-                const name = other.trim();
-
-                if (i in prevPluts) {
-                    const t = prevPluts[i];
-                    t.name = name;
-                    t.display = name.slice(0,2)
-                    t.color = color;
-                    return t;
+                if (id in prevPluts) {
+                    const _m = prevPluts[id];
+                    _m.name = name;
+                    _m.display = display;
+                    _m.color = color;
+                    _m.size = size;
+                    return _m;
                 } else {
                     return {
                         name: name,
                         cx: 200,
                         cy: 200,
-                        id: crypto.randomUUID(),
-                        display: name.slice(0,2),
-                        lineNo: i,
-                        color: color
+                        id: id,
+                        display: display,
+                        lineNo: 0,
+                        color: color,
+                        size: size,
                     } as PultD3Data;
                 }
             })
             .filter((p): p is PultD3Data => p !== undefined);
 
         setData((d) => ({ ...d, pults: pults }));
-    }, [data.plutText]);
+    }, [data.parts, data.members]);
 
     useEffect(() => {
         // DEBUG
@@ -144,17 +209,23 @@ export function AppContextProvider(props: AppContextProviderProps) {
         setData((d) => ({ ...d, plutText: pultData }));
     }, []);
 
-    const loadExportData = useCallback((exData: ExportDataV1)=>{
+    const loadExportData = useCallback(
+        (exData: ExportDataV2) => {
+            const backgroundImage = base64ToFile(
+                exData.backgroundImage,
+                exData.backgroundImageMimeType
+            );
 
-        const backgroundImage = base64ToFile(exData.backgroundImage,exData.backgroundImageMimeType);
-        
-        setData(d=>({...d,
-            plutText: exData.pultText,
-            pults: exData.pults,
-            file: backgroundImage
-        }));
-
-    },[data]);
+            setData((d) => ({
+                ...d,
+                parts: exData.parts ?? [],
+                members: exData.members ?? [],
+                pults: exData.pults,
+                file: backgroundImage,
+            }));
+        },
+        [data]
+    );
 
     return (
         <AppContext.Provider value={{ data, setData, loadExportData }}>

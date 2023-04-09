@@ -5,8 +5,56 @@ import { useAppContext } from "../contexts/AppContext";
 import { ImportDialog } from "./ImportDialog";
 import { ExportDialog } from "./ExportDialog";
 import { InputDialog } from "./InputDialog";
-import { Typography } from "@mui/material";
+import { Slider, Stack, TextField, Typography } from "@mui/material";
+import { InputPartsDialog } from "./InputPartsDialog";
+import { InputMemberDialog } from "./InputMemberDialog";
 
+function ScaleSlider() {
+    const { data, setData } = useAppContext();
+
+    const handleOnChangeScale = (
+        event: Event,
+        value: number | number[],
+        activeThumb: number
+    ) => {
+        const newValue = (() => {
+            if (Array.isArray(value)) {
+                return value[0];
+            }
+            return value;
+        })();
+
+        setData({ ...data, scale: newValue });
+    };
+    const handleOnChangeScaleText: React.ChangeEventHandler<
+        HTMLInputElement | HTMLTextAreaElement
+    > = (e) => {
+        const value = parseInt(e.target.value);
+
+        const scale = Math.min(Math.max(1, value), 1000);
+        setData({ ...data, scale: scale });
+    };
+    return (
+        <div className="nav-slider-container">
+            <div className="text">
+                <TextField
+                    label="スケール [pixel/m]"
+                    variant="standard"
+                    type="number"
+                    onChange={handleOnChangeScaleText}
+                    value={data.scale}
+                ></TextField>
+            </div>
+
+            <Slider
+                value={data.scale}
+                onChange={handleOnChangeScale}
+                min={1}
+                max={1000}
+            ></Slider>
+        </div>
+    );
+}
 
 export class NavProps {
     className?: string;
@@ -23,6 +71,8 @@ export function Control(props: NavProps) {
     const [inputOpen, setInputOpen] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
     const [importOpen, setImportOpen] = useState(false);
+    const [inputPartsOpen, setInputPartsOpen] = useState(false);
+    const [inputMemberOpen, setInputMemberOpen] = useState(false);
 
     const handleInputClose = () => {
         setInputOpen(false);
@@ -55,9 +105,16 @@ export function Control(props: NavProps) {
                 <Button
                     variant="contained"
                     component="label"
-                    onClick={() => setInputOpen(true)}
+                    onClick={() => setInputPartsOpen(true)}
                 >
-                    プルト入力
+                    パート入力
+                </Button>
+                <Button
+                    variant="contained"
+                    component="label"
+                    onClick={() => setInputMemberOpen(true)}
+                >
+                    出演者入力
                 </Button>
                 <Button
                     variant="contained"
@@ -73,15 +130,28 @@ export function Control(props: NavProps) {
                 >
                     Import
                 </Button>
+                <ScaleSlider />
             </div>
             <div className="nav-version">
-                <Typography color={"white"} variant="body2" align="center">© {new Date().getFullYear()} uttne</Typography>
-                <Typography color={"white"} variant="body2" align="center">MSP Canvas v{__APP_VERSION__}</Typography>
+                <Typography color={"white"} variant="body2" align="center">
+                    © {new Date().getFullYear()} uttne
+                </Typography>
+                <Typography color={"white"} variant="body2" align="center">
+                    MSP Canvas v{__APP_VERSION__}
+                </Typography>
             </div>
-            
+
             <InputDialog open={inputOpen} onClose={handleInputClose} />
             <ExportDialog open={exportOpen} onClose={handleExportClose} />
             <ImportDialog open={importOpen} onClose={handleImportClose} />
+            <InputPartsDialog
+                open={inputPartsOpen}
+                onClose={() => setInputPartsOpen(false)}
+            />
+            <InputMemberDialog
+                open={inputMemberOpen}
+                onClose={() => setInputMemberOpen(false)}
+            />
         </div>
     );
 }
