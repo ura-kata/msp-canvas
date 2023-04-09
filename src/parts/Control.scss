@@ -15,7 +15,16 @@
             margin: 0.2em;
         }
         >.nav-slider-container{
-            margin: 2em;
+            margin: 0.2em;
+            background-color: #fefefe;
+            padding-right: 2em;
+            padding-left: 2em;
+            border: 5px solid #1976d2;
+            border-radius: 4px;
+            >.text{
+                background-color: #fefefe;
+                padding: 3px;
+            }
         }
     }
     >.nav-version{

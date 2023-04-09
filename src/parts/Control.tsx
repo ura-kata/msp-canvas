@@ -5,7 +5,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { ImportDialog } from "./ImportDialog";
 import { ExportDialog } from "./ExportDialog";
 import { InputDialog } from "./InputDialog";
-import { Slider, Stack, Typography } from "@mui/material";
+import { Slider, Stack, TextField, Typography } from "@mui/material";
 import { InputPartsDialog } from "./InputPartsDialog";
 import { InputMemberDialog } from "./InputMemberDialog";
 
@@ -26,10 +26,27 @@ function ScaleSlider() {
 
         setData({ ...data, scale: newValue });
     };
+    const handleOnChangeScaleText: React.ChangeEventHandler<
+        HTMLInputElement | HTMLTextAreaElement
+    > = (e) => {
+        const value = parseInt(e.target.value);
+
+        const scale = Math.min(Math.max(1, value), 1000);
+        setData({ ...data, scale: scale });
+    };
     return (
         <div className="nav-slider-container">
+            <div className="text">
+                <TextField
+                    label="スケール [pixel/m]"
+                    variant="standard"
+                    type="number"
+                    onChange={handleOnChangeScaleText}
+                    value={data.scale}
+                ></TextField>
+            </div>
+
             <Slider
-                valueLabelDisplay="on"
                 value={data.scale}
                 onChange={handleOnChangeScale}
                 min={1}
