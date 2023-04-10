@@ -38,12 +38,28 @@ function MemberRow(props: MemberRowProps) {
                 <TextField
                     label="氏名"
                     value={props.member.name}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                        // 氏名を入力したときに自動で表示名を設定するロジックを入れておく
+                        const prevName = props.member.name;
+                        const value = e.target.value;
+                        const display = props.member.display ?? "";
+
+                        const prevNameDisplay =
+                            prevName.split(/\s/).filter((v) => v !== "")[0] ??
+                            "";
+                        const valueDisplay =
+                            value.split(/\s/).filter((v) => v !== "")[0] ?? "";
+                        const newDisplay =
+                            prevNameDisplay === display
+                                ? valueDisplay
+                                : display;
+
                         props.onChange({
                             ...props.member,
                             name: e.target.value,
-                        })
-                    }
+                            display: newDisplay,
+                        });
+                    }}
                 />
             </Grid2>
             <Grid2 sm={4} className="input-member-grid-item" paddingRight={1}>
