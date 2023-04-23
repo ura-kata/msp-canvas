@@ -10,7 +10,7 @@ export function createSvg(parentTagSelector: string):d3.Selection<SVGSVGElement,
     return s;
 }
 
-export function initRootSvg(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>) {
+export function initSvg(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>) {
     if (!svg)
         return;
     const s = svg;

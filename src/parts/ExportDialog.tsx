@@ -12,7 +12,7 @@ import {
     createSvg,
     drawBackgroundImage,
     drawPult,
-    initRootSvg,
+    initSvg,
 } from "../libs/canvas";
 import { format } from "date-fns";
 import {
@@ -105,7 +105,7 @@ function SvgContent() {
         if (svg.current) return;
         const s = createSvg("#export-svg-data");
         svg.current = s;
-        initRootSvg(s);
+        initSvg(s);
     }, [svg.current]);
 
     useEffect(() => {

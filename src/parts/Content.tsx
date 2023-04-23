@@ -2,10 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import "./Content.scss";
 import { useAppContext, PultD3Data } from "../contexts/AppContext";
-import { BackgroundImageData, useBackgroundImage } from "../hooks/useBackgroundImage";
+import { useBackgroundImage } from "../hooks/useBackgroundImage";
 import { usePults } from "../hooks/usePults";
 import { Menu, MenuItem } from "@mui/material";
-import { createSvg, drawBackgroundImage, drawPult, initRootSvg, setPlutShapeParam } from "../libs/canvas";
+import {
+    createSvg,
+    drawBackgroundImage,
+    drawPult,
+    initSvg,
+    setPlutShapeParam,
+} from "../libs/canvas";
 
 export interface ContentProps {}
 
@@ -81,8 +87,8 @@ function useRootSvg(): RootSvgData {
         if (!svg.current) {
             const s = createSvg(".content-root");
             svg.current = s;
-            
-            initRootSvg(s);
+
+            initSvg(s);
 
             resizeRootSvg(svg.current, div.clientWidth, div.clientHeight, 0, 0);
 
@@ -99,7 +105,6 @@ function useRootSvg(): RootSvgData {
 }
 
 const DEBUG_SHAPE_RELOAD = 9;
-
 
 export function Content(props: ContentProps) {
     const { data, setData } = useAppContext();
