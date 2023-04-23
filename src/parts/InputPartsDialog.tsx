@@ -16,6 +16,9 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import "./InputPartsDialog.scss";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import DoneIcon from "@mui/icons-material/Done";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface ColorSelectorPops {
     color: string;
@@ -221,6 +224,15 @@ export function InputPartsDialog(props: InputPartsDialogProps) {
         return () => window.removeEventListener("keydown", hendleKeyDown);
     }, [props.open]);
 
+    const handleCopyClipboard = () => {
+        const lines = parts.map((m) => {
+            return `${m.name ?? ""}\t${m.size ?? ""}`;
+        });
+        const cd = lines.join("\n");
+        navigator.clipboard.writeText(cd);
+        alert("クリップボードにコピーしました!");
+    };
+
     return (
         <Dialog open={props.open} onClose={handleCalcelPult} fullWidth>
             <DialogTitle>パートの入力</DialogTitle>
@@ -265,8 +277,15 @@ export function InputPartsDialog(props: InputPartsDialogProps) {
                 </Grid2>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleSavePlut}>保存</Button>
-                <Button onClick={handleCalcelPult}>キャンセル</Button>
+                <IconButton onClick={handleCopyClipboard}>
+                    <ContentPasteIcon />
+                </IconButton>
+                <IconButton onClick={handleSavePlut}>
+                    <DoneIcon />
+                </IconButton>
+                <IconButton onClick={handleCalcelPult}>
+                    <CloseIcon />
+                </IconButton>
             </DialogActions>
         </Dialog>
     );

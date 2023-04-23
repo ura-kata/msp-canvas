@@ -14,6 +14,9 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import "./InputMemberDialog.scss";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import DoneIcon from "@mui/icons-material/Done";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface MemberRowProps {
     member: MemberData;
@@ -225,6 +228,24 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
         return () => window.removeEventListener("keydown", hendleKeyDown);
     }, [props.open, data]);
 
+    const handleCopyClipboard = () => {
+        const parts = data.parts;
+
+        const partDict: { [partName: string]: PartData } = {};
+        parts.forEach((p) => {
+            partDict[p.id?.trim() ?? ""] = p;
+        });
+
+        const lines = members.map((m) => {
+            return `${m.name ?? ""}\t${m.display ?? ""}\t${
+                partDict[m.partId ?? ""]?.name ?? ""
+            }`;
+        });
+        const cd = lines.join("\n");
+        navigator.clipboard.writeText(cd);
+        alert("クリップボードにコピーしました!");
+    };
+
     return (
         <Dialog open={props.open} onClose={handleCalcelPult} fullWidth>
             <DialogTitle>メンバーの入力</DialogTitle>
@@ -270,8 +291,15 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
                 </Grid2>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleSavePlut}>保存</Button>
-                <Button onClick={handleCalcelPult}>キャンセル</Button>
+                <IconButton onClick={handleCopyClipboard}>
+                    <ContentPasteIcon />
+                </IconButton>
+                <IconButton onClick={handleSavePlut}>
+                    <DoneIcon />
+                </IconButton>
+                <IconButton onClick={handleCalcelPult}>
+                    <CloseIcon />
+                </IconButton>
             </DialogActions>
         </Dialog>
     );
