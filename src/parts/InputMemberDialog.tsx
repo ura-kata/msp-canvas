@@ -139,6 +139,92 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
         });
     };
 
+    useEffect(() => {
+        if (!props.open) return;
+
+        const hendleKeyDown = async (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key === "v") {
+                const items = await navigator.clipboard.read();
+
+                if (items.length === 0) return;
+
+                const parts = data.parts;
+
+                const partDict: { [partName: string]: PartData } = {};
+                parts.forEach((p) => {
+                    partDict[p.name?.trim() ?? ""] = p;
+                });
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.types.includes("text/plain")) {
+                        const blob = await item.getType("text/plain");
+
+                        const text = await blob.text();
+
+                        // 以下のようなデータ
+                        // 氏名\t表示\tパート名
+
+                        const pasteMembers = text
+                            .replaceAll("\r", "")
+                            .split("\n")
+                            .filter((line) => line !== "")
+                            .map((line) => {
+                                const items = line
+                                    .split("\t")
+                                    .map((v) => v.trim());
+
+                                const name = items[0]?.trim() || undefined;
+                                const display = (
+                                    items[1]?.trim() ||
+                                    name
+                                        ?.split(/\s/)
+                                        .filter((v) => v !== "")[0] ||
+                                    undefined
+                                )?.trim();
+                                const partName = items[2]?.trim();
+                                const partId =
+                                    partName !== undefined
+                                        ? partDict[partName]?.id || null
+                                        : undefined;
+                                return {
+                                    name: name,
+                                    display: display,
+                                    partId: partId,
+                                };
+                            });
+
+                        setMembers((prev) => {
+                            const newMembers = pasteMembers.map((v, i) => {
+                                return {
+                                    id: prev[i]?.id
+                                        ? prev[i].id
+                                        : crypto.randomUUID(),
+                                    name:
+                                        (v.name !== undefined
+                                            ? v.name
+                                            : prev[i]?.name) || "",
+                                    display:
+                                        (v.display !== undefined
+                                            ? v.display
+                                            : prev[i]?.display) || "",
+                                    partId:
+                                        (v.partId !== undefined
+                                            ? v.partId
+                                            : prev[i]?.partId) || null,
+                                };
+                            });
+                            return newMembers;
+                        });
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("keydown", hendleKeyDown);
+        return () => window.removeEventListener("keydown", hendleKeyDown);
+    }, [props.open, data]);
+
     return (
         <Dialog open={props.open} onClose={handleCalcelPult} fullWidth>
             <DialogTitle>メンバーの入力</DialogTitle>
