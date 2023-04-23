@@ -1,5 +1,5 @@
 .content-root {
-    height: 100vh;
+    height: 100%;
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -14,4 +14,11 @@
     .plut-g {
         cursor: move;
     }
+}
+
+// 600px 以上
+@media (min-width: 600px) {
+    .content-root {
+            height: 100vh;
+        }
 }

@@ -6,6 +6,7 @@ import { useBackgroundImage } from "../hooks/useBackgroundImage";
 import { usePults } from "../hooks/usePults";
 import { Menu, MenuItem } from "@mui/material";
 import {
+    createRootSvg,
     createSvg,
     drawBackgroundImage,
     drawPult,
@@ -26,7 +27,7 @@ function setZoom(
     if (!s) return;
 
     const zoomed = (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
-        s.selectAll<SVGGElement, unknown>(".background-layer,.draw-layer").attr(
+        s.select<SVGGElement>(".svg-canvas-control-group").attr(
             "transform",
             event.transform.toString()
         );
@@ -47,35 +48,31 @@ function setZoom(
 function resizeRootSvg(
     rootSvg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null,
     divClientWidth: number,
-    divClientHeight: number,
-    backgroundImageWidth?: number,
-    backgroundImageHeight?: number
+    divClientHeight: number
 ) {
     const s = rootSvg;
     if (!s) return;
-    const imageWidth = backgroundImageWidth ?? 0;
-    const imageHeight = backgroundImageHeight ?? 0;
     const clientWidth = Math.floor(divClientWidth - 10);
     const clientHeight = Math.floor(divClientHeight - 10);
-    const scale = Math.min(
-        clientWidth / imageWidth,
-        clientHeight / imageHeight
-    );
-    const width = imageWidth === 0 ? 0 : imageWidth * scale;
-    const height = imageHeight === 0 ? 0 : imageHeight * scale;
+    const width = clientWidth;
+    const height = clientHeight;
 
     s.attr("width", width).attr("height", height);
 
-    setZoom(s, imageWidth, imageHeight);
+    setZoom(s, clientWidth, clientHeight);
 }
 
 interface RootSvgData {
-    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null;
+    svgCanvas: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null;
+    svgRoot: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null;
     contentRootRef: React.RefObject<HTMLDivElement>;
 }
 
 function useRootSvg(): RootSvgData {
-    const svg = useRef(
+    const svgRoot = useRef(
+        null as d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null
+    );
+    const svgCanvas = useRef(
         null as d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null
     );
     const contentRootRef = useRef<HTMLDivElement>(null);
@@ -84,13 +81,26 @@ function useRootSvg(): RootSvgData {
         // svg を初期化する
         const div = contentRootRef.current as HTMLDivElement;
 
-        if (!svg.current) {
-            const s = createSvg(".content-root");
-            svg.current = s;
+        if (!svgRoot.current) {
+            const rootSvg = createRootSvg(".content-root");
+            svgRoot.current = rootSvg;
+
+            resizeRootSvg(rootSvg, div.clientWidth, div.clientHeight);
+        }
+
+        if (!svgCanvas.current && svgRoot.current) {
+            const s = createSvg(svgRoot.current);
+            svgCanvas.current = s;
 
             initSvg(s);
 
-            resizeRootSvg(svg.current, div.clientWidth, div.clientHeight, 0, 0);
+            // resizeRootSvg(
+            //     svgCanvas.current,
+            //     div.clientWidth,
+            //     div.clientHeight,
+            //     0,
+            //     0
+            // );
 
             s.on("click", (d) => {
                 console.log("root svg click");
@@ -99,7 +109,8 @@ function useRootSvg(): RootSvgData {
     }, []);
 
     return {
-        svg: svg.current,
+        svgCanvas: svgCanvas.current,
+        svgRoot: svgRoot.current,
         contentRootRef: contentRootRef,
     };
 }
@@ -110,32 +121,20 @@ export function Content(props: ContentProps) {
     const { data, setData } = useAppContext();
     const backgroundImageData = useBackgroundImage();
 
-    const { svg, contentRootRef } = useRootSvg();
+    const { svgCanvas, svgRoot, contentRootRef } = useRootSvg();
 
     const pults = usePults();
     const scale = data.scale;
 
     useEffect(() => {
         const div = contentRootRef.current as HTMLDivElement;
-        const s = svg;
+        const s = svgRoot;
         if (!s) return;
 
-        resizeRootSvg(
-            s,
-            div.clientWidth,
-            div.clientHeight,
-            backgroundImageData?.width,
-            backgroundImageData?.height
-        );
+        resizeRootSvg(s, div.clientWidth, div.clientHeight);
 
         const resizeObserver = new ResizeObserver((e) => {
-            resizeRootSvg(
-                s,
-                div.clientWidth,
-                div.clientHeight,
-                backgroundImageData?.width,
-                backgroundImageData?.height
-            );
+            resizeRootSvg(s, div.clientWidth, div.clientHeight);
         });
 
         resizeObserver.observe(div);
@@ -143,7 +142,7 @@ export function Content(props: ContentProps) {
         return () => {
             resizeObserver.unobserve(div);
         };
-    }, [backgroundImageData]);
+    }, []);
 
     const [targetMenuData, setTargetMenuData] = useState<{
         mouseX: number;
@@ -164,19 +163,19 @@ export function Content(props: ContentProps) {
 
     useEffect(() => {
         // d3 の描画処理など
-        const s = svg;
+        const s = svgCanvas;
         if (!s) return;
 
-        drawBackgroundImage(svg, backgroundImageData);
-        drawPult(svg, pults, handleTargetContextMenu, scale);
-    }, [svg, backgroundImageData, pults, handleTargetContextMenu, scale]);
+        drawBackgroundImage(svgCanvas, backgroundImageData);
+        drawPult(svgCanvas, pults, handleTargetContextMenu, scale);
+    }, [svgCanvas, backgroundImageData, pults, handleTargetContextMenu, scale]);
 
     useEffect(() => {
         // DEBUG
-        const s = svg;
+        const s = svgCanvas;
         if (!s) return;
 
-        const layer = svg.select(".draw-layer");
+        const layer = svgCanvas.select(".draw-layer");
         const circle = layer
             .selectAll<SVGCircleElement, unknown>(".plut-g > circle")
             .data(pults);
