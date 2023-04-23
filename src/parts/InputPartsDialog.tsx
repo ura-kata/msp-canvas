@@ -82,12 +82,12 @@ interface PartRowProps {
 function PartRow(props: PartRowProps) {
     return (
         <>
-            <Grid2 sm={1} className="input-part-grid-item">
+            <Grid2 xs={1} md={1} className="input-part-grid-item">
                 <IconButton onClick={() => props.onDelete(props.part)}>
                     <DeleteForeverIcon />
                 </IconButton>
             </Grid2>
-            <Grid2 sm={5} className="input-part-grid-item">
+            <Grid2 xs={11} md={5} className="input-part-grid-item">
                 <TextField
                     label="パート名"
                     value={props.part.name}
@@ -96,7 +96,7 @@ function PartRow(props: PartRowProps) {
                     }
                 />
             </Grid2>
-            <Grid2 sm={3} className="input-part-grid-item">
+            <Grid2 xs={8} md={3} className="input-part-grid-item">
                 <TextField
                     label="サイズ[m]"
                     type="number"
@@ -113,7 +113,7 @@ function PartRow(props: PartRowProps) {
                     }
                 />
             </Grid2>
-            <Grid2 sm={3} className="input-part-grid-item">
+            <Grid2 xs={4} md={3} className="input-part-grid-item">
                 <ColorSelector
                     color={props.part.color}
                     onChange={(color) =>
@@ -269,7 +269,7 @@ export function InputPartsDialog(props: InputPartsDialogProps) {
                             />
                         );
                     })}
-                    <Grid2 sm={12} className="input-part-grid-item">
+                    <Grid2 xs={12} md={12} className="input-part-grid-item">
                         <IconButton onClick={handleAddPart}>
                             <AddCircleIcon />
                         </IconButton>

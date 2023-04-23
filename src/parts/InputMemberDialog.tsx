@@ -32,12 +32,17 @@ function MemberRow(props: MemberRowProps) {
     );
     return (
         <>
-            <Grid2 sm={1} className="input-member-grid-item">
+            <Grid2 xs={1} md={1} className="input-member-grid-item">
                 <IconButton onClick={() => props.onDelete(props.member)}>
                     <DeleteForeverIcon />
                 </IconButton>
             </Grid2>
-            <Grid2 sm={4} className="input-member-grid-item" paddingRight={1}>
+            <Grid2
+                xs={11}
+                md={4}
+                className="input-member-grid-item"
+                paddingRight={1}
+            >
                 <TextField
                     label="氏名"
                     value={props.member.name}
@@ -65,7 +70,12 @@ function MemberRow(props: MemberRowProps) {
                     }}
                 />
             </Grid2>
-            <Grid2 sm={4} className="input-member-grid-item" paddingRight={1}>
+            <Grid2
+                xs={6}
+                md={4}
+                className="input-member-grid-item"
+                paddingRight={1}
+            >
                 <TextField
                     label="表示"
                     value={props.member.display}
@@ -77,7 +87,7 @@ function MemberRow(props: MemberRowProps) {
                     }
                 />
             </Grid2>
-            <Grid2 sm={3} className="input-member-grid-item">
+            <Grid2 xs={6} md={3} className="input-member-grid-item">
                 <TextField
                     label="パート"
                     select
@@ -283,7 +293,7 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
                             />
                         );
                     })}
-                    <Grid2 sm={12} className="input-member-grid-item">
+                    <Grid2 xs={12} md={12} className="input-member-grid-item">
                         <IconButton onClick={handleAddMember}>
                             <AddCircleIcon />
                         </IconButton>
