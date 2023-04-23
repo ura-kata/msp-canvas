@@ -8,6 +8,7 @@ import { InputDialog } from "./InputDialog";
 import { Slider, Stack, TextField, Typography } from "@mui/material";
 import { InputPartsDialog } from "./InputPartsDialog";
 import { InputMemberDialog } from "./InputMemberDialog";
+import { Copyright } from "./Copyrighe";
 
 function ScaleSlider() {
     const { data, setData } = useAppContext();
@@ -132,15 +133,7 @@ export function Control(props: NavProps) {
                 </Button>
                 <ScaleSlider />
             </div>
-            <div className="nav-version">
-                <Typography color={"white"} variant="body2" align="center">
-                    © {new Date().getFullYear()} uttne
-                </Typography>
-                <Typography color={"white"} variant="body2" align="center">
-                    MSP Canvas v{__APP_VERSION__}
-                </Typography>
-            </div>
-
+            <Copyright className="nav-version" />
             <InputDialog open={inputOpen} onClose={handleInputClose} />
             <ExportDialog open={exportOpen} onClose={handleExportClose} />
             <ImportDialog open={importOpen} onClose={handleImportClose} />

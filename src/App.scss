@@ -27,20 +27,37 @@ body {
     display: block;
 }
 
-.control {
-    height: 100px;
+.control-small {
+    display: grid;
+
+    height: 5em;
     width: 100%;
+    margin: 0px;
+    padding: 0px;
+    background-color: rgb(34, 34, 34);
+}
+.control-large {
+    display: none;
+
+    height: 100vh;
+    width: 200px;
     margin: 0px;
     padding: 0px;
     background-color: rgb(34, 34, 34);
 }
 
 .content {
-    height: calc(100vh - 100px);
+    height: calc(100vh - 5em);
     width: 100%;
     margin: 0px;
     padding: 0px;
     background-color: rgb(158, 158, 158);
+}
+
+.small-nav-copyright{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 // 600px 以上
@@ -49,9 +66,11 @@ body {
         display: flex;
     }
 
-    .control {
-        height: 100vh;
-        width: 200px;
+    .control-small {
+        display: none;
+    }
+    .control-large {
+        display: block;
     }
 
     .content {
