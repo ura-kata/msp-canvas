@@ -94,14 +94,6 @@ function PartRow(props: PartRowProps) {
                 />
             </Grid2>
             <Grid2 sm={3} className="input-part-grid-item">
-                <ColorSelector
-                    color={props.part.color}
-                    onChange={(color) =>
-                        props.onChange({ ...props.part, color: color })
-                    }
-                ></ColorSelector>
-            </Grid2>
-            <Grid2 sm={3} className="input-part-grid-item">
                 <TextField
                     label="サイズ[m]"
                     type="number"
@@ -117,6 +109,14 @@ function PartRow(props: PartRowProps) {
                         })
                     }
                 />
+            </Grid2>
+            <Grid2 sm={3} className="input-part-grid-item">
+                <ColorSelector
+                    color={props.part.color}
+                    onChange={(color) =>
+                        props.onChange({ ...props.part, color: color })
+                    }
+                ></ColorSelector>
             </Grid2>
         </>
     );
@@ -156,6 +156,70 @@ export function InputPartsDialog(props: InputPartsDialogProps) {
             },
         ]);
     };
+
+    useEffect(() => {
+        if (!props.open) return;
+
+        const hendleKeyDown = async (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key === "v") {
+                const items = await navigator.clipboard.read();
+
+                if (items.length === 0) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.types.includes("text/plain")) {
+                        const blob = await item.getType("text/plain");
+
+                        const text = await blob.text();
+
+                        // 以下のようなデータ
+                        // パート名\tサイズ
+
+                        const pasteParts = text
+                            .replaceAll("\r", "")
+                            .split("\n")
+                            .filter((line) => line !== "")
+                            .map((line) => {
+                                const items = line
+                                    .split("\t")
+                                    .map((v) => v.trim());
+
+                                const name = items[0];
+                                const size = parseFloat(items[1]);
+                                return {
+                                    name: name,
+                                    size: isNaN(size) ? undefined : size,
+                                };
+                            });
+
+                        setParts((prev) => {
+                            const newParts = pasteParts.map((v, i) => {
+                                return {
+                                    id: prev[i]?.id
+                                        ? prev[i].id
+                                        : crypto.randomUUID(),
+                                    name:
+                                        (v.name !== undefined
+                                            ? v.name
+                                            : prev[i]?.name) || "",
+                                    color: prev[i]?.color || "#000",
+                                    size:
+                                        (v.size !== undefined
+                                            ? v.size
+                                            : prev[i]?.size) || 1,
+                                };
+                            });
+                            return newParts;
+                        });
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("keydown", hendleKeyDown);
+        return () => window.removeEventListener("keydown", hendleKeyDown);
+    }, [props.open]);
 
     return (
         <Dialog open={props.open} onClose={handleCalcelPult} fullWidth>
