@@ -9,6 +9,10 @@ import { Slider, Stack, TextField, Typography } from "@mui/material";
 import { InputPartsDialog } from "./InputPartsDialog";
 import { InputMemberDialog } from "./InputMemberDialog";
 import { Copyright } from "./Copyrighe";
+import EditIcon from "@mui/icons-material/Edit";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import ImageIcon from "@mui/icons-material/Image";
 
 function ScaleSlider() {
     const { data, setData } = useAppContext();
@@ -91,7 +95,8 @@ export function Control(props: NavProps) {
         <div className={"nav-root " + props.className}>
             <div className="nav-button-container">
                 <Button variant="contained" component="label">
-                    背景画像をアップロード
+                    <ImageIcon />
+                    背景画像
                     {/*
                     materila ui の Button に input を仕込む方法
                     https://stackoverflow.com/questions/40589302/how-to-enable-file-upload-on-reacts-material-ui-simple-input */}
@@ -108,6 +113,7 @@ export function Control(props: NavProps) {
                     component="label"
                     onClick={() => setInputPartsOpen(true)}
                 >
+                    <EditIcon />
                     パート入力
                 </Button>
                 <Button
@@ -115,6 +121,7 @@ export function Control(props: NavProps) {
                     component="label"
                     onClick={() => setInputMemberOpen(true)}
                 >
+                    <EditIcon />
                     出演者入力
                 </Button>
                 <Button
@@ -122,14 +129,16 @@ export function Control(props: NavProps) {
                     component="label"
                     onClick={() => setExportOpen(true)}
                 >
-                    Export
+                    <FileDownloadIcon />
+                    書き出し
                 </Button>
                 <Button
                     variant="contained"
                     component="label"
                     onClick={() => setImportOpen(true)}
                 >
-                    Import
+                    <FileUploadIcon />
+                    読み込み
                 </Button>
                 <ScaleSlider />
             </div>

@@ -7,6 +7,7 @@ import {
     IconButton,
     MenuItem,
     TextField,
+    Tooltip,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { MemberData, PartData, useAppContext } from "../contexts/AppContext";
@@ -15,7 +16,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import "./InputMemberDialog.scss";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
-import ContentPasteGoIcon from "@mui/icons-material/ContentPasteGo";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -123,12 +124,12 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
     const { data, setData } = useAppContext();
     const [members, setMembers] = useState<MemberData[]>(data.members);
 
-    const handleSavePlut = () => {
+    const handleAccept = () => {
         setData({ ...data, members: [...members] });
         props.onClose();
     };
 
-    const handleCalcelPult = () => {
+    const handleCalcel = () => {
         setMembers(data.members ? [...data.members] : []);
         props.onClose();
     };
@@ -256,7 +257,7 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
     };
 
     return (
-        <Dialog open={props.open} onClose={handleCalcelPult} fullWidth>
+        <Dialog open={props.open} onClose={handleCalcel} fullWidth>
             <DialogTitle>メンバーの入力</DialogTitle>
             <DialogContent>
                 <Grid2 container rowSpacing={2} marginTop={1}>
@@ -301,16 +302,24 @@ export function InputMemberDialog(props: InputMemberDialogProps) {
             </DialogContent>
             <DialogActions>
                 <IconButton onClick={handleCopyClipboard}>
-                    <ContentPasteIcon />
+                    <Tooltip title="クリップボードにコピー" arrow>
+                        <ContentCopyIcon />
+                    </Tooltip>
                 </IconButton>
                 <IconButton onClick={handlePaste}>
-                    <ContentPasteGoIcon />
+                    <Tooltip title="クリップボードから貼り付け" arrow>
+                        <ContentPasteIcon />
+                    </Tooltip>
                 </IconButton>
-                <IconButton onClick={handleSavePlut}>
-                    <DoneIcon />
+                <IconButton onClick={handleAccept}>
+                    <Tooltip title="適用" arrow>
+                        <DoneIcon />
+                    </Tooltip>
                 </IconButton>
-                <IconButton onClick={handleCalcelPult}>
-                    <CloseIcon />
+                <IconButton onClick={handleCalcel}>
+                    <Tooltip title="キャンセル" arrow>
+                        <CloseIcon />
+                    </Tooltip>
                 </IconButton>
             </DialogActions>
         </Dialog>

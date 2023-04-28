@@ -5,6 +5,8 @@ import {
     DialogContent,
     DialogTitle,
     TextField,
+    Tooltip,
+    IconButton,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -12,6 +14,7 @@ import {
     ExportDataV2,
     useAppContext,
 } from "../contexts/AppContext";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface ImportSvgContentProps {
     svgFile: File;
@@ -148,7 +151,7 @@ export function ImportDialog(props: ImportDialogProps) {
 
             if (exportData.version !== "2") {
                 throw new Error(
-                    "インポートしたデータの version が '2' ではありませんでした"
+                    "読み込みしたデータの version が '2' ではありませんでした"
                 );
             }
 
@@ -157,7 +160,7 @@ export function ImportDialog(props: ImportDialogProps) {
             props.onClose();
             setIsError(false);
         } catch {
-            console.log("JSON のインポートに失敗しました");
+            console.log("JSON の読み込みに失敗しました");
             setIsError(true);
         }
     };
@@ -196,17 +199,21 @@ export function ImportDialog(props: ImportDialogProps) {
                     onChange={handleLoadSvg}
                 />
             </Button>
-            {/* TODO: PNGのインポート機能を実装する */}
+            {/* TODO: PNGの読み込み機能を実装する */}
             {/* <Button onClick={handleImportPng}>PNG</Button> */}
         </>
     );
 
     return (
         <Dialog open={props.open} onClose={handleOnClose} fullWidth>
-            <DialogTitle>Import</DialogTitle>
+            <DialogTitle>読み込み</DialogTitle>
             <DialogContent>{Content}</DialogContent>
             <DialogActions>
-                <Button onClick={handleOnClose}>閉じる</Button>
+                <IconButton onClick={handleOnClose}>
+                    <Tooltip title="閉じる" arrow>
+                        <CloseIcon />
+                    </Tooltip>
+                </IconButton>
             </DialogActions>
         </Dialog>
     );

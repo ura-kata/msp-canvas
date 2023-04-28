@@ -22,8 +22,11 @@ import {
     DialogContent,
     DialogTitle,
     TextField,
+    IconButton,
+    Tooltip,
 } from "@mui/material";
 import { fileToBase64 } from "../libs/utils";
+import CloseIcon from "@mui/icons-material/Close";
 
 async function createExportDataV2(backgroundUrl: string, data: AppContextData) {
     const blob = await fetch(backgroundUrl).then((r) => r.blob());
@@ -215,7 +218,7 @@ export function ExportDialog(props: ExportDialogProps) {
             <>
                 <Button onClick={handleExportText}>Json</Button>
                 <Button onClick={handleExportSvg}>SVG</Button>
-                {/* TODO: PNG のエクスポートを実装する */}
+                {/* TODO: PNG の書き出しを実装する */}
                 {/* <Button onClick={handleExportPng}>PNG</Button> */}
             </>
         );
@@ -223,10 +226,14 @@ export function ExportDialog(props: ExportDialogProps) {
 
     return (
         <Dialog open={props.open} onClose={props.onClose} fullWidth>
-            <DialogTitle>Export</DialogTitle>
+            <DialogTitle>書き出し</DialogTitle>
             <DialogContent>{Content}</DialogContent>
             <DialogActions>
-                <Button onClick={props.onClose}>閉じる</Button>
+                <IconButton onClick={props.onClose}>
+                    <Tooltip title="閉じる" arrow>
+                        <CloseIcon />
+                    </Tooltip>
+                </IconButton>
             </DialogActions>
         </Dialog>
     );
