@@ -17,6 +17,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import "./InputPartsDialog.scss";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import ContentPasteGoIcon from "@mui/icons-material/ContentPasteGo";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -160,63 +161,63 @@ export function InputPartsDialog(props: InputPartsDialogProps) {
         ]);
     };
 
+    const handlePaste = async () => {
+        const items = await navigator.clipboard.read();
+
+        if (items.length === 0) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.types.includes("text/plain")) {
+                const blob = await item.getType("text/plain");
+
+                const text = await blob.text();
+
+                // 以下のようなデータ
+                // パート名\tサイズ
+
+                const pasteParts = text
+                    .replaceAll("\r", "")
+                    .split("\n")
+                    .filter((line) => line !== "")
+                    .map((line) => {
+                        const items = line.split("\t").map((v) => v.trim());
+
+                        const name = items[0];
+                        const size = parseFloat(items[1]);
+                        return {
+                            name: name,
+                            size: isNaN(size) ? undefined : size,
+                        };
+                    });
+
+                setParts((prev) => {
+                    const newParts = pasteParts.map((v, i) => {
+                        return {
+                            id: prev[i]?.id ? prev[i].id : crypto.randomUUID(),
+                            name:
+                                (v.name !== undefined
+                                    ? v.name
+                                    : prev[i]?.name) || "",
+                            color: prev[i]?.color || "#000",
+                            size:
+                                (v.size !== undefined
+                                    ? v.size
+                                    : prev[i]?.size) || 1,
+                        };
+                    });
+                    return newParts;
+                });
+            }
+        }
+    };
+
     useEffect(() => {
         if (!props.open) return;
 
         const hendleKeyDown = async (e: KeyboardEvent) => {
             if (e.ctrlKey && e.key === "v") {
-                const items = await navigator.clipboard.read();
-
-                if (items.length === 0) return;
-
-                for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    if (item.types.includes("text/plain")) {
-                        const blob = await item.getType("text/plain");
-
-                        const text = await blob.text();
-
-                        // 以下のようなデータ
-                        // パート名\tサイズ
-
-                        const pasteParts = text
-                            .replaceAll("\r", "")
-                            .split("\n")
-                            .filter((line) => line !== "")
-                            .map((line) => {
-                                const items = line
-                                    .split("\t")
-                                    .map((v) => v.trim());
-
-                                const name = items[0];
-                                const size = parseFloat(items[1]);
-                                return {
-                                    name: name,
-                                    size: isNaN(size) ? undefined : size,
-                                };
-                            });
-
-                        setParts((prev) => {
-                            const newParts = pasteParts.map((v, i) => {
-                                return {
-                                    id: prev[i]?.id
-                                        ? prev[i].id
-                                        : crypto.randomUUID(),
-                                    name:
-                                        (v.name !== undefined
-                                            ? v.name
-                                            : prev[i]?.name) || "",
-                                    color: prev[i]?.color || "#000",
-                                    size:
-                                        (v.size !== undefined
-                                            ? v.size
-                                            : prev[i]?.size) || 1,
-                                };
-                            });
-                            return newParts;
-                        });
-                    }
-                }
+                await handlePaste();
             }
         };
 
@@ -279,6 +280,9 @@ export function InputPartsDialog(props: InputPartsDialogProps) {
             <DialogActions>
                 <IconButton onClick={handleCopyClipboard}>
                     <ContentPasteIcon />
+                </IconButton>
+                <IconButton onClick={handlePaste}>
+                    <ContentPasteGoIcon />
                 </IconButton>
                 <IconButton onClick={handleSavePlut}>
                     <DoneIcon />
