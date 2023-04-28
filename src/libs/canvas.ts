@@ -2,10 +2,28 @@ import * as d3 from "d3";
 import { PultD3Data } from "../contexts/AppContext";
 import { BackgroundImageData } from "../hooks/useBackgroundImage";
 
-export function createSvg(parentTagSelector: string):d3.Selection<SVGSVGElement, unknown, HTMLElement, any> {
+export function createRootSvg(parentTagSelector: string):d3.Selection<SVGSVGElement, unknown, HTMLElement, any> {
     const s = d3
             .select(parentTagSelector)
             .append("svg")
+        .attr("class", "svg-canvas-root");
+    
+    // transform を設定するためのグループを追加
+    s.append("g").attr("class", "svg-canvas-control-group");
+    return s;
+}
+
+export function createSvg(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | string): d3.Selection<SVGSVGElement, unknown, HTMLElement, any> {
+    if (typeof svg === "string") {
+        const s = d3
+            .select(svg)
+            .append("svg")
+            .attr("class", "svg-canvas");
+        return s;
+    }
+    const s = svg
+        .select(".svg-canvas-control-group")
+        .append("svg")
         .attr("class", "svg-canvas");
     return s;
 }
