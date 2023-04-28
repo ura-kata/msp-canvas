@@ -142,7 +142,7 @@ export function Content(props: ContentProps) {
         return () => {
             resizeObserver.unobserve(div);
         };
-    }, []);
+    }, [svgRoot]);
 
     const [targetMenuData, setTargetMenuData] = useState<{
         mouseX: number;
