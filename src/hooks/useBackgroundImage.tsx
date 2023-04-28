@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppContext } from "../contexts/AppContext";
 
-import baseCanvasUrl from "../assets/base-canvas.svg";
+import baseCanvasUrl from "../assets/stage-canvas.svg";
 import { fileToEmbeddedUrl, urlToEmbeddedUrl } from "../libs/utils";
 
 export interface BackgroundImageData {
@@ -26,14 +26,14 @@ export function useBackgroundImage(): BackgroundImageData | undefined {
         const tmp = new Image();
 
         tmp.onload = () => {
-            urlToEmbeddedUrl(baseCanvasUrl).then(embeddedUrl => {
+            urlToEmbeddedUrl(baseCanvasUrl).then((embeddedUrl) => {
                 setBaseCanvasSize({
                     url: baseCanvasUrl,
                     width: tmp.naturalWidth,
                     height: tmp.naturalHeight,
-                    embeddedUrl: embeddedUrl
-                });    
-            })
+                    embeddedUrl: embeddedUrl,
+                });
+            });
         };
 
         tmp.src = baseCanvasUrl;
@@ -44,12 +44,11 @@ export function useBackgroundImage(): BackgroundImageData | undefined {
         if (!file) return;
 
         const f = async () => {
-            const url = await fileToEmbeddedUrl(file)
+            const url = await fileToEmbeddedUrl(file);
             setEmbeddedUrl(url);
         };
 
         f();
-        
     }, [data]);
 
     const backgroundImageData = useMemo<BackgroundImageData | undefined>(() => {
@@ -60,7 +59,7 @@ export function useBackgroundImage(): BackgroundImageData | undefined {
             url: data.fileUrl,
             width: data.fileData.width,
             height: data.fileData.height,
-            embeddedUrl: embeddedUrl
+            embeddedUrl: embeddedUrl,
         };
     }, [data, baseCanvasSize, embeddedUrl]);
 
